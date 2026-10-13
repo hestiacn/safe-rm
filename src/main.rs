@@ -25,8 +25,15 @@ use std::io::{self, BufRead, Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use std::process;
 
+#[cfg(any(target_os = "freebsd", target_os = "macos"))]
+const SYSCONFDIR: &str = "/usr/local/etc";
+#[cfg(not(any(target_os = "freebsd", target_os = "macos")))]
+const SYSCONFDIR: &str = "/etc";
+
+#[cfg(any(target_os = "freebsd", target_os = "macos"))]
+const GLOBAL_CONFIG: &str = "/usr/local/etc/safe-rm.conf";
+#[cfg(not(any(target_os = "freebsd", target_os = "macos")))]
 const GLOBAL_CONFIG: &str = "/etc/safe-rm.conf";
-const LOCAL_GLOBAL_CONFIG: &str = "/usr/local/etc/safe-rm.conf";
 const USER_CONFIG: &str = ".config/safe-rm";
 const LEGACY_USER_CONFIG: &str = ".safe-rm";
 
@@ -209,8 +216,22 @@ fn read_config_files(globals: &[&str], locals: &[&str]) -> HashSet<PathBuf> {
         );
     }
 
-    if protected_paths.is_empty() {
-        protected_paths.extend(DEFAULT_PATHS.iter().map(PathBuf::from));
+    protected_paths.extend(DEFAULT_PATHS.iter().map(PathBuf::from));
+
+    for mut path_buf in protected_paths.clone() {
+        loop {
+            protected_paths.insert(path_buf.clone());
+            if ! path_buf.pop() {
+                break;
+            }
+        }
+    }
+
+    if cfg!(debug_assertions) {
+        let mut not_allow_delete_list: Vec<&PathBuf> = protected_paths.iter().collect();
+        not_allow_delete_list.sort_by(|a, b| a.cmp(b));
+
+        dbg!(not_allow_delete_list);
     }
 
     protected_paths
@@ -253,6 +274,43 @@ fn ensure_real_rm_is_callable(real_rm: &OsStr) -> io::Result<()> {
 }
 
 fn main() {
+    let args: Vec<OsString> = std::env::args_os().collect();
+    if args.len() > 1 {
+        if let Some(arg) = args[1].to_str() {
+            match arg {
+                "--version" | "-V" => {
+                    println!("safe-rm {}", env!("CARGO_PKG_VERSION"));
+                    process::exit(0);
+                }
+                "--help" | "-h" => {
+                    println!("safe-rm {}", env!("CARGO_PKG_VERSION"));
+                    println!("Wrapper around rm to prevent accidental deletion.");
+                    println!();
+                    println!("Usage: safe-rm [OPTIONS] FILE...");
+                    println!();
+                    println!("Options:");
+                    println!("  -V, --version    Show version and exit");
+                    println!("  -h, --help       Show this help and exit");
+                    println!();
+                    println!("All other arguments are passed to rm.");
+                    println!();
+                    println!("Configuration:");
+                    println!("  {}/safe-rm.conf", SYSCONFDIR);
+                    println!("  ~/.config/safe-rm");
+                    println!("  ~/.safe-rm  (legacy)");
+                    println!();
+                    println!("Update protection list:");
+                    println!(
+                        "  update-safe-rm              # scan / and regenerate {}/safe-rm.conf",
+                        SYSCONFDIR
+                    );
+                    process::exit(0);
+                }
+                _ => {}
+            }
+        }
+    }
+
     if let Err(e) = ensure_real_rm_is_callable(REAL_RM.as_ref()) {
         println!(
             "safe-rm: Cannot check that the real \"rm\" binary is callable: {}",
@@ -263,7 +321,7 @@ fn main() {
     process::exit(run(
         REAL_RM.as_ref(),
         std::env::args_os().skip(1),
-        &[GLOBAL_CONFIG, LOCAL_GLOBAL_CONFIG],
+        &[GLOBAL_CONFIG],
         &[USER_CONFIG, LEGACY_USER_CONFIG],
     ));
 }

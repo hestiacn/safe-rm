@@ -1,73 +1,168 @@
+<p align="center">
+  <img src="logo.png" alt="safe-rm" width="300">
+</p>
+
 # safe-rm
 
-prevention of accidental deletions by excluding important directories
+Prevents accidental execution of `rm -rf /*` in the root directory.
 
-Copyright (C) 2008-2021  Francois Marier <francois@fmarier.org>
+`safe-rm` is a wrapper around `/bin/rm` that inspects its arguments
+against a configurable list of exclusion paths and refuses to delete
+files or directories on that list. Protected paths are skipped with a
+warning; all other arguments are passed through unchanged to the real `rm`.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+```console
+$ rm -rf /usr
+safe-rm: Skipping /usr.
+```
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+## Features
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
+- **Protects important paths**: `/`, `/etc`, `/usr`, `/var`, and other
+  common system directories are covered by the default protection list
+- **Multi-layer configuration**: system-wide + user-specific + built-in
+  defaults, merged together
+- **Glob support**: wildcards allowed in config files, e.g. `/home/*/Documents`
+- **Symlink safety**: resolves symlinks before deletion to prevent
+  bypassing the protection list
+- **Prebuilt binaries**: Linux (glibc / musl), macOS, FreeBSD, LoongArch64
+- **One-line install**: automatic platform detection with localized messages
+- **Multi-language**: 30+ languages including Chinese, English, Japanese,
+  Korean, German, French, Russian
 
-## How to use
+## Quick Install
 
-Once you have installed safe-rm on your system (see `INSTALL`), you will need to
-fill the system-wide or user-specific exclusions with the paths that you'd like
-to protect against accidental deletion.
+### One-line script (recommended)
 
-The system-wide exclusions live in `/etc/safe-rm.conf` (or `/usr/local/etc/safe-rm.conf`)
-and you should probably add paths like these:
+```sh
+curl -fsSL https://raw.githubusercontent.com/hestiacn/safe-rm/master/install.sh | sudo sh
+```
 
-    /
-    /etc
-    /usr
-    /usr/lib
-    /var
+The installer automatically:
 
-The user-specific exclusions live in ~/.config/safe-rm and could include things like:
+- Detects OS and CPU architecture
+- Chooses the glibc or musl static build based on the system glibc version
+- Downloads the matching prebuilt binary
+- Installs the binary, config file, PATH script, and man page
 
-    /home/username/documents
-    /home/username/documents/*
-    /home/username/.mozilla
+### Supported platforms
 
-## Other approaches
+| Platform | Package | Architecture |
+|---|---|---|
+| Linux (glibc) | `safe-rm-v<version>-linux-x86_64-gnu.tar.gz` | x86_64 |
+| Linux (glibc) | `safe-rm-v<version>-linux-aarch64-gnu.tar.gz` | aarch64 / ARM64 |
+| Linux (glibc) | `safe-rm-v<version>-linux-loongarch64-gnu.tar.gz` | LoongArch64 |
+| Linux (musl) | `safe-rm-v<version>-linux-x86_64-musl.tar.gz` | x86_64 |
+| Linux (musl) | `safe-rm-v<version>-linux-aarch64-musl.tar.gz` | aarch64 / ARM64 |
+| macOS | `safe-rm-v<version>-macos-x86_64.tar.gz` | Intel |
+| macOS | `safe-rm-v<version>-macos-aarch64.tar.gz` | Apple Silicon |
+| FreeBSD | `safe-rm-v<version>-freebsd-x86_64.tar.gz` | x86_64 |
 
-If you want more protection than what safe-rm can offer, here are a few suggestions.
+> **glibc vs musl**: the installer checks the system glibc version. If
+> glibc is older than 2.32, it automatically selects the musl static build
+> to avoid errors like `GLIBC_2.32 not found`.
 
-You could of course request confirmation every time you delete a file by putting this in
-your /etc/bash.bashrc:
+### Build from source
 
-    alias rm='rm -i'
+```sh
+cargo build --release
+sudo make install
+```
 
-But this won't protect you from getting used to always saying yes, or from accidentally
-using 'rm -rf'.
+## Configuration
 
-Or you could make use of the Linux filesystem "immutable" attribute by marking (as root)
-each file you want to protect:
+`safe-rm` reads the protection list from the following sources and
+**merges** them (they are not overridden):
 
-    chattr +i file
+1. **System-wide**: `/etc/safe-rm.conf` (or `/usr/local/etc/safe-rm.conf`)
+2. **User-specific**: `~/.config/safe-rm`
+3. **Legacy user-specific**: `~/.safe-rm` (backward compatibility)
+4. **Built-in defaults**: `DEFAULT_PATHS` in the source
 
-Of course this is only usable on filesystems which support this feature.
+### System-wide config example
 
-Here are two projects which allow you to recover recently deleted files by trapping
-all unlink(), rename() and open() system calls through the LD_PRELOAD facility:
+`/etc/safe-rm.conf`:
 
-* [delsafe](https://web.archive.org/web/20081027033142/http://homepage.esoterica.pt:80/~nx0yew/delsafe/)
-* [libtrashcan](http://hpux.connect.org.uk/hppd/hpux/Development/Libraries/libtrash-0.2/readme.html)
+```bash
+/
+/etc
+/usr
+/usr/lib
+/var
+```
 
-There are also projects which implement the FreeDesktop.org trashcan spec. For example:
+### User-specific config example
 
-* [trash-cli](https://github.com/andreafrancia/trash-cli)
+`~/.config/safe-rm`:
 
-Finally, this project is a fork of GNU coreutils and adds features similar to safe-rm
-to the rm command directly:
+```bash
+/home/username/documents
+/home/username/documents/*
+/home/username/.mozilla
+```
 
-* [rmfd](https://github.com/d5h/rmfd)
+Glob wildcards are supported, with an expansion limit of 256 entries to
+prevent a malicious config from slowing down startup.
+
+### Update the protection list
+
+`update-safe-rm` scans `/` and regenerates the protection list:
+
+```sh
+sudo update-safe-rm
+```
+
+## Uninstall
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/hestiacn/safe-rm/master/install.sh | sudo sh -s -- --uninstall
+```
+
+Or locally:
+
+```sh
+sudo sh install.sh --uninstall
+```
+
+## Project layout
+
+```bash
+.
+├── .github/              # CI (multi-platform build & release)
+├── src/                  # Rust source
+├── Cargo.toml            # Project config
+├── Cargo.lock
+├── Changes               # Changelog
+├── COPYING               # GPLv3 license
+├── INSTALL               # Install instructions
+├── Makefile              # Build/install/test/uninstall
+├── Manifest              # File manifest
+├── README.md             # This file
+├── RELEASING             # Release process
+├── TESTING               # Testing notes
+├── install.sh            # One-line install/uninstall script
+├── safe-rm.1             # man page
+├── safe-rm.desktop       # Desktop integration
+├── logo.svg / logo.png   # Project logo
+```
+
+## Alternatives
+
+If you need stronger protection than `safe-rm`, consider:
+
+- **`alias rm='rm -i'`** — confirm every deletion. Does not protect you
+  from habitually answering yes, or from accidentally using `rm -rf`.
+- **`chattr +i file`** — uses the filesystem "immutable" attribute; only
+  works on filesystems that support it.
+- **`trash-cli`** — implements the FreeDesktop.org trashcan spec, allowing
+  recovery of deleted files.
+  <https://github.com/andreafrancia/trash-cli>
+- **`rmfd`** — a fork of GNU coreutils that adds safe-rm-like features
+  directly to `rm`.
+  <https://github.com/d5h/rmfd>
+
+## License
+
+GPLv3. See [COPYING](COPYING).
+
+Copyright (C) 2008-2026  Francois Marier <francois@fmarier.org>
