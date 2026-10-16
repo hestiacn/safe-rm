@@ -1,6 +1,10 @@
 <p align="center">
   <img src="logo.png" alt="safe-rm" width="300">
 </p>
+<p align="center">
+  <a href="https://www.gnu.org/licenses/gpl-3.0.html#license-text"><img src="https://img.shields.io/badge/License-GPL%20v3-blue.svg" alt="License"></a><br>
+  <a href="https://github.com/hestiacn/safe-rm/releases/latest"><img src="https://img.shields.io/github/v/release/hestiacn/safe-rm?style=flat&logo=github&label=Latest%20Release&color=blue" alt="Latest Release"></a>
+</p>
 
 # safe-rm
 
@@ -49,14 +53,14 @@ The installer automatically:
 
 | Platform | Package | Architecture |
 |---|---|---|
-| Linux (glibc) | `safe-rm-v<version>-linux-x86_64-gnu.tar.gz` | x86_64 |
-| Linux (glibc) | `safe-rm-v<version>-linux-aarch64-gnu.tar.gz` | aarch64 / ARM64 |
-| Linux (glibc) | `safe-rm-v<version>-linux-loongarch64-gnu.tar.gz` | LoongArch64 |
-| Linux (musl) | `safe-rm-v<version>-linux-x86_64-musl.tar.gz` | x86_64 |
-| Linux (musl) | `safe-rm-v<version>-linux-aarch64-musl.tar.gz` | aarch64 / ARM64 |
-| macOS | `safe-rm-v<version>-macos-x86_64.tar.gz` | Intel |
-| macOS | `safe-rm-v<version>-macos-aarch64.tar.gz` | Apple Silicon |
-| FreeBSD | `safe-rm-v<version>-freebsd-x86_64.tar.gz` | x86_64 |
+| Linux (glibc) | `safe-rm-![Latest](https://img.shields.io/github/v/release/hestiacn/safe-rm?style=flat&label=&color=blue)-linux-x86_64-gnu.tar.gz` | x86_64 |
+| Linux (glibc) | `safe-rm-![Latest](https://img.shields.io/github/v/release/hestiacn/safe-rm?style=flat&label=&color=blue)-linux-aarch64-gnu.tar.gz` | aarch64 / ARM64 |
+| Linux (glibc) | `safe-rm-![Latest](https://img.shields.io/github/v/release/hestiacn/safe-rm?style=flat&label=&color=blue)-linux-loongarch64-gnu.tar.gz` | LoongArch64 |
+| Linux (musl) | `safe-rm-![Latest](https://img.shields.io/github/v/release/hestiacn/safe-rm?style=flat&label=&color=blue)-linux-x86_64-musl.tar.gz` | x86_64 |
+| Linux (musl) | `safe-rm-![Latest](https://img.shields.io/github/v/release/hestiacn/safe-rm?style=flat&label=&color=blue)-linux-aarch64-musl.tar.gz` | aarch64 / ARM64 |
+| macOS | `safe-rm-![Latest](https://img.shields.io/github/v/release/hestiacn/safe-rm?style=flat&label=&color=blue)-macos-x86_64.tar.gz` | Intel |
+| macOS | `safe-rm-![Latest](https://img.shields.io/github/v/release/hestiacn/safe-rm?style=flat&label=&color=blue)-macos-aarch64.tar.gz` | Apple Silicon |
+| FreeBSD | `safe-rm-![Latest](https://img.shields.io/github/v/release/hestiacn/safe-rm?style=flat&label=&color=blue)-freebsd-x86_64.tar.gz` | x86_64 |
 
 > **glibc vs musl**: the installer checks the system glibc version. If
 > glibc is older than 2.32, it automatically selects the musl static build

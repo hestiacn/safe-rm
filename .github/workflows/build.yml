@@ -210,9 +210,9 @@ jobs:
 
           CONF="\${1:-$SYSCONFDIR/safe-rm.conf}"
 
-          case "\${LANG%%.*}" in
-              zh_CN|zh_SG) MSG_UPDATED="已更新"; MSG_COUNT="条" ;;
-              zh_TW|zh_HK) MSG_UPDATED="已更新"; MSG_COUNT="條" ;;
+          case "${LANG%%.*}" in
+              zh_CN|zh_SG|zh_MY) MSG_UPDATED="已更新"; MSG_COUNT="条" ;;
+              zh_TW|zh_HK|zh_MO) MSG_UPDATED="已更新"; MSG_COUNT="條" ;;
               ja_JP)       MSG_UPDATED="更新しました"; MSG_COUNT="件" ;;
               ko_KR)       MSG_UPDATED="업데이트됨"; MSG_COUNT="개" ;;
               vi_VN)       MSG_UPDATED="Đã cập nhật"; MSG_COUNT="mục" ;;
@@ -231,18 +231,49 @@ jobs:
               ro_RO)       MSG_UPDATED="Actualizat"; MSG_COUNT="intrări" ;;
               el_GR)       MSG_UPDATED="Ενημερώθηκε"; MSG_COUNT="καταχωρήσεις" ;;
               de_DE)       MSG_UPDATED="Aktualisiert"; MSG_COUNT="Einträge" ;;
-              fr_FR)       MSG_UPDATED="Mis à jour"; MSG_COUNT="entrées" ;;
-              es_ES|es_MX|es_AR) MSG_UPDATED="Actualizado"; MSG_COUNT="entradas" ;;
-              pt_PT|pt_BR) MSG_UPDATED="Atualizado"; MSG_COUNT="entradas" ;;
+              fr_FR|fr_CA|fr_BE|fr_CH) MSG_UPDATED="Mis à jour"; MSG_COUNT="entrées" ;;
+              es_ES|es_MX|es_AR|es_CO|es_CL|es_PE) MSG_UPDATED="Actualizado"; MSG_COUNT="entradas" ;;
+              pt_PT|pt_BR|pt_AO|pt_MZ) MSG_UPDATED="Atualizado"; MSG_COUNT="entradas" ;;
               it_IT)       MSG_UPDATED="Aggiornato"; MSG_COUNT="voci" ;;
               nl_NL)       MSG_UPDATED="Bijgewerkt"; MSG_COUNT="vermeldingen" ;;
               sv_SE)       MSG_UPDATED="Uppdaterad"; MSG_COUNT="poster" ;;
               nb_NO|nn_NO) MSG_UPDATED="Oppdatert"; MSG_COUNT="oppføringer" ;;
               da_DK)       MSG_UPDATED="Opdateret"; MSG_COUNT="poster" ;;
               fi_FI)       MSG_UPDATED="Päivitetty"; MSG_COUNT="merkintää" ;;
-              ar_SA|ar_EG) MSG_UPDATED="تم التحديث"; MSG_COUNT="إدخالات" ;;
+              ar_SA|ar_EG|ar_AE|ar_MA|ar_DZ) MSG_UPDATED="تم التحديث"; MSG_COUNT="إدخالات" ;;
               he_IL)       MSG_UPDATED="עודכן"; MSG_COUNT="רשומות" ;;
               fa_IR)       MSG_UPDATED="به‌روزرسانی شد"; MSG_COUNT="ورودی" ;;
+              af_ZA)       MSG_UPDATED="Opgedateer"; MSG_COUNT="inskrywings" ;;
+              am_ET)       MSG_UPDATED="ተዘምኗል"; MSG_COUNT="ግቤቶች" ;;
+              az_AZ)       MSG_UPDATED="Yeniləndi"; MSG_COUNT="qeydlər" ;;
+              be_BY)       MSG_UPDATED="Абноўлена"; MSG_COUNT="запісаў" ;;
+              bg_BG)       MSG_UPDATED="Актуализирано"; MSG_COUNT="записа" ;;
+              ca_ES)       MSG_UPDATED="Actualitzat"; MSG_COUNT="entrades" ;;
+              et_EE)       MSG_UPDATED="Uuendatud"; MSG_COUNT="kirjet" ;;
+              gu_IN)       MSG_UPDATED="અપડેટ કર્યું"; MSG_COUNT="એન્ટ્રીઓ" ;;
+              hr_HR)       MSG_UPDATED="Ažurirano"; MSG_COUNT="unosa" ;;
+              hy_AM)       MSG_UPDATED="Թարմացվել է"; MSG_COUNT="գրառումներ" ;;
+              is_IS)       MSG_UPDATED="Uppfært"; MSG_COUNT="færslur" ;;
+              ka_GE)       MSG_UPDATED="განახლდა"; MSG_COUNT="ჩანაწერები" ;;
+              kk_KZ)       MSG_UPDATED="Жаңартылды"; MSG_COUNT="жазбалар" ;;
+              kn_IN)       MSG_UPDATED="ನವೀಕರಿಸಲಾಗಿದೆ"; MSG_COUNT="ನಮೂದುಗಳು" ;;
+              lt_LT)       MSG_UPDATED="Atnaujinta"; MSG_COUNT="įrašų" ;;
+              lv_LV)       MSG_UPDATED="Atjaunināts"; MSG_COUNT="ieraksti" ;;
+              mk_MK)       MSG_UPDATED="Ажурирано"; MSG_COUNT="записи" ;;
+              ml_IN)       MSG_UPDATED="അപ്ഡേറ്റ് ചെയ്തു"; MSG_COUNT="എൻട്രികൾ" ;;
+              mn_MN)       MSG_UPDATED="Шинэчлэгдсэн"; MSG_COUNT="бичлэг" ;;
+              mr_IN)       MSG_UPDATED="अद्ययावत केले"; MSG_COUNT="नोंदी" ;;
+              ne_NP)       MSG_UPDATED="अद्यावधिक गरियो"; MSG_COUNT="प्रविष्टिहरू" ;;
+              pa_IN)       MSG_UPDATED="ਅੱਪਡੇਟ ਕੀਤਾ"; MSG_COUNT="ਇੰਦਰਾਜਾਂ" ;;
+              si_LK)       MSG_UPDATED="යාවත්කාලීන කරන ලදි"; MSG_COUNT="සටහන්" ;;
+              sl_SI)       MSG_UPDATED="Posodobljeno"; MSG_COUNT="vnosov" ;;
+              sq_AL)       MSG_UPDATED="Përditësuar"; MSG_COUNT="hyrje" ;;
+              sr_RS)       MSG_UPDATED="Ажурирано"; MSG_COUNT="уноса" ;;
+              sw_KE)       MSG_UPDATED="Imesasishwa"; MSG_COUNT="maingizo" ;;
+              ta_IN)       MSG_UPDATED="புதுப்பிக்கப்பட்டது"; MSG_COUNT="பதிவுகள்" ;;
+              te_IN)       MSG_UPDATED="నవీకరించబడింది"; MSG_COUNT="నమోదులు" ;;
+              ur_PK)       MSG_UPDATED="اپ ڈیٹ ہو گیا"; MSG_COUNT="اندراجات" ;;
+              uz_UZ)       MSG_UPDATED="Yangilandi"; MSG_COUNT="yozuvlar" ;;
               *)           MSG_UPDATED="Updated"; MSG_COUNT="entries" ;;
           esac
 

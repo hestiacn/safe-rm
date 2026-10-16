@@ -11,7 +11,7 @@
 
 set -e
 
-# Path configuration 
+# Path configuration
 PREFIX="${PREFIX:-/usr/local}"
 
 # SYSCONFDIR by platform
@@ -33,15 +33,15 @@ BINDIR="$PREFIX/bin"
 PROFILEDIR="$SYSCONFDIR/profile.d"
 SYMLINKDIR="$PREFIX/share/safe-rm/bin"
 
-# Online install configuration 
+# Online install configuration
 VERSION="${VERSION:-1.1.0}"
 REPO="hestiacn/safe-rm"
 BASE_URL="https://github.com/${REPO}/releases/download/v${VERSION}"
 
-# Project homepage 
+# Project homepage
 HOMEPAGE="https://launchpad.net/safe-rm"
 
-# Colors 
+# Colors
 if [ -t 1 ]; then
     ESC=$(printf '\033')
     RED="${ESC}[0;31m"
@@ -55,9 +55,9 @@ else
     NC=''
 fi
 
-# Messages (i18n) 
+# Messages (i18n)
 case "${LANG%%.*}" in
-    zh_CN|zh_SG)
+    zh_CN|zh_SG|zh_MY)
         MSG_INSTALL="正在安装 safe-rm 到"
         MSG_DONE="安装完成。"
         MSG_UNINSTALL="正在卸载 safe-rm..."
@@ -80,11 +80,21 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="正在解压..."
         MSG_UNSUPPORTED="不支持："
         MSG_NEED_TOOLS="错误：缺少必要工具。"
-        MSG_MANUAL_INSTALL="请先手动安装以下工具后重试："
+        MSG_CURRENT_DISTRO="当前发行版"
+        MSG_MISSING="缺少"
+        MSG_RUN_INSTALL="请执行以下命令安装："
+        MSG_UNKNOWN_OS="当前发行版识别失败，请手动安装缺失的工具"
+        MSG_AFTER_INSTALL="安装完成后请重新运行本脚本。"
         MSG_DOWNLOAD_FAILED="下载失败"
         MSG_EXTRACT_FAILED="解压失败"
+        MSG_TRY_GNU="正在准备 gnu 版本..."
+        MSG_TRY_MUSL="正在准备 musl 版本..."
+        MSG_GNU_SELECTED="当前安装的是 gnu 版本..."
+        MSG_MUSL_SELECTED="当前安装的是 musl 版本..."
+        MSG_FALLBACK_MUSL="gnu 版本不可用，正在回退到 musl 版本..."
+        MSG_BOTH_FAILED="错误：gnu 和 musl 版本均无法在当前系统安装。\n可能原因：发行版/架构未添加支持，或该平台未编译 musl 版本。\n请提交 issue 并附上上方打印的系统信息，方便开发人员添加缺失的包。"
         ;;
-    zh_TW|zh_HK)
+    zh_TW|zh_HK|zh_MO)
         MSG_INSTALL="正在安裝 safe-rm 到"
         MSG_DONE="安裝完成。"
         MSG_UNINSTALL="正在卸載 safe-rm..."
@@ -107,9 +117,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="正在解壓..."
         MSG_UNSUPPORTED="不支援："
         MSG_NEED_TOOLS="錯誤：缺少必要工具。"
-        MSG_MANUAL_INSTALL="請先手動安裝以下工具後重試："
+        MSG_CURRENT_DISTRO="當前發行版"
+        MSG_MISSING="缺少"
+        MSG_RUN_INSTALL="請執行以下命令安裝："
+        MSG_UNKNOWN_OS="當前發行版識別失敗，請手動安裝缺失的工具"
+        MSG_AFTER_INSTALL="安裝完成後請重新執行本腳本。"
         MSG_DOWNLOAD_FAILED="下載失敗"
         MSG_EXTRACT_FAILED="解壓失敗"
+        MSG_TRY_GNU="正在準備 gnu 版本..."
+        MSG_TRY_MUSL="正在準備 musl 版本..."
+        MSG_GNU_SELECTED="當前安裝的是 gnu 版本..."
+        MSG_MUSL_SELECTED="當前安裝的是 musl 版本..."
+        MSG_FALLBACK_MUSL="gnu 版本不可用，正在回退到 musl 版本..."
+        MSG_BOTH_FAILED="錯誤：gnu 和 musl 版本均無法在當前系統安裝。\n可能原因：發行版/架構未添加支持，或該平台未編譯 musl 版本。\n請提交 issue 並附上上方打印的系統信息，方便開發人員添加缺失的包。"
         ;;
     ja_JP)
         MSG_INSTALL="safe-rm をインストール中:"
@@ -134,9 +154,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="展開中..."
         MSG_UNSUPPORTED="未対応："
         MSG_NEED_TOOLS="エラー：必要なツールがありません。"
-        MSG_MANUAL_INSTALL="先に以下のツールを手動でインストールしてから再実行してください:"
+        MSG_CURRENT_DISTRO="現在のディストリビューション"
+        MSG_MISSING="不足"
+        MSG_RUN_INSTALL="以下のコマンドを実行してインストールしてください:"
+        MSG_UNKNOWN_OS="現在のディストリビューションを識別できません。不足しているツールを手動でインストールしてください"
+        MSG_AFTER_INSTALL="インストール完了後、このスクリプトを再実行してください。"
         MSG_DOWNLOAD_FAILED="ダウンロード失敗"
         MSG_EXTRACT_FAILED="展開失敗"
+        MSG_TRY_GNU="gnu 版を準備中..."
+        MSG_TRY_MUSL="musl 版を準備中..."
+        MSG_GNU_SELECTED="現在インストールしているのは gnu 版です..."
+        MSG_MUSL_SELECTED="現在インストールしているのは musl 版です..."
+        MSG_FALLBACK_MUSL="gnu 版が利用できないため、musl 版にフォールバックします..."
+        MSG_BOTH_FAILED="エラー：gnu 版も musl 版もこのシステムにはインストールできません。\n原因の可能性：ディストリビューション/アーキテクチャが未対応、またはこのプラットフォーム向けの musl 版が未コンパイルです。\n上記に表示されたシステム情報を添えて issue を提出してください。開発者が不足しているパッケージを追加できます。"
         ;;
     ko_KR)
         MSG_INSTALL="safe-rm 설치 중:"
@@ -161,9 +191,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="압축 해제 중..."
         MSG_UNSUPPORTED="지원되지 않음:"
         MSG_NEED_TOOLS="오류: 필요한 도구가 없습니다."
-        MSG_MANUAL_INSTALL="다음 도구를 수동으로 설치한 후 다시 시도하세요:"
+        MSG_CURRENT_DISTRO="현재 배포판"
+        MSG_MISSING="누락"
+        MSG_RUN_INSTALL="다음 명령을 실행하여 설치하세요:"
+        MSG_UNKNOWN_OS="현재 배포판을 인식하지 못했습니다. 누락된 도구를 수동으로 설치하세요"
+        MSG_AFTER_INSTALL="설치 후 이 스크립트를 다시 실행하세요."
         MSG_DOWNLOAD_FAILED="다운로드 실패"
         MSG_EXTRACT_FAILED="압축 해제 실패"
+        MSG_TRY_GNU="gnu 버전 준비 중..."
+        MSG_TRY_MUSL="musl 버전 준비 중..."
+        MSG_GNU_SELECTED="현재 설치 중인 버전은 gnu 버전입니다..."
+        MSG_MUSL_SELECTED="현재 설치 중인 버전은 musl 버전입니다..."
+        MSG_FALLBACK_MUSL="gnu 버전을 사용할 수 없어 musl 버전으로 대체합니다..."
+        MSG_BOTH_FAILED="오류: gnu 및 musl 버전 모두 현재 시스템에 설치할 수 없습니다.\n가능한 원인: 배포판/아키텍처 미지원, 또는 해당 플랫폼용 musl 버전이 컴파일되지 않았습니다.\n위에 출력된 시스템 정보를 첨부하여 issue를 제출해 주세요. 개발자가 누락된 패키지를 추가할 수 있습니다."
         ;;
     vi_VN)
         MSG_INSTALL="Đang cài đặt safe-rm vào"
@@ -188,9 +228,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Đang giải nén..."
         MSG_UNSUPPORTED="Không hỗ trợ:"
         MSG_NEED_TOOLS="Lỗi: thiếu công cụ cần thiết."
-        MSG_MANUAL_INSTALL="Vui lòng cài đặt thủ công các công cụ sau rồi thử lại:"
+        MSG_CURRENT_DISTRO="Bản phân phối hiện tại"
+        MSG_MISSING="Thiếu"
+        MSG_RUN_INSTALL="Vui lòng chạy lệnh sau để cài đặt:"
+        MSG_UNKNOWN_OS="Không nhận diện được bản phân phối hiện tại, vui lòng cài đặt thủ công các công cụ còn thiếu"
+        MSG_AFTER_INSTALL="Sau khi cài đặt, vui lòng chạy lại script này."
         MSG_DOWNLOAD_FAILED="Tải xuống thất bại"
         MSG_EXTRACT_FAILED="Giải nén thất bại"
+        MSG_TRY_GNU="Đang chuẩn bị bản gnu..."
+        MSG_TRY_MUSL="Đang chuẩn bị bản musl..."
+        MSG_GNU_SELECTED="Đang cài đặt bản gnu..."
+        MSG_MUSL_SELECTED="Đang cài đặt bản musl..."
+        MSG_FALLBACK_MUSL="Bản gnu không khả dụng, đang quay lại bản musl..."
+        MSG_BOTH_FAILED="Lỗi: cả bản gnu và musl đều không thể cài đặt trên hệ thống hiện tại.\nNguyên nhân có thể: bản phân phối/kiến trúc chưa được hỗ trợ, hoặc bản musl chưa được biên dịch cho nền tảng này.\nVui lòng gửi issue kèm thông tin hệ thống được in ở trên để nhà phát triển bổ sung gói còn thiếu."
         ;;
     th_TH)
         MSG_INSTALL="กำลังติดตั้ง safe-rm ไปที่"
@@ -215,9 +265,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="กำลังแตกไฟล์..."
         MSG_UNSUPPORTED="ไม่รองรับ:"
         MSG_NEED_TOOLS="ข้อผิดพลาด: เครื่องมือที่จำเป็นหายไป"
-        MSG_MANUAL_INSTALL="โปรดติดตั้งเครื่องมือต่อไปนี้ด้วยตนเองแล้วลองใหม่:"
+        MSG_CURRENT_DISTRO="ดิสทริบิวชันปัจจุบัน"
+        MSG_MISSING="ขาด"
+        MSG_RUN_INSTALL="โปรดรันคำสั่งต่อไปนี้เพื่อติดตั้ง:"
+        MSG_UNKNOWN_OS="ไม่สามารถระบุดิสทริบิวชันปัจจุบันได้ โปรดติดตั้งเครื่องมือที่ขาดหายด้วยตนเอง"
+        MSG_AFTER_INSTALL="หลังการติดตั้ง โปรดรันสคริปต์นี้อีกครั้ง"
         MSG_DOWNLOAD_FAILED="ดาวน์โหลดล้มเหลว"
         MSG_EXTRACT_FAILED="แตกไฟล์ล้มเหลว"
+        MSG_TRY_GNU="กำลังเตรียมเวอร์ชัน gnu..."
+        MSG_TRY_MUSL="กำลังเตรียมเวอร์ชัน musl..."
+        MSG_GNU_SELECTED="กำลังติดตั้งเวอร์ชัน gnu..."
+        MSG_MUSL_SELECTED="กำลังติดตั้งเวอร์ชัน musl..."
+        MSG_FALLBACK_MUSL="เวอร์ชัน gnu ไม่พร้อมใช้งาน กำลังกลับไปใช้เวอร์ชัน musl..."
+        MSG_BOTH_FAILED="ข้อผิดพลาด: ไม่สามารถติดตั้งเวอร์ชัน gnu และ musl บนระบบปัจจุบันได้\nสาเหตุที่เป็นไปได้: ดิสทริบิวชัน/สถาปัตยกรรมยังไม่รองรับ หรือยังไม่ได้คอมไพล์เวอร์ชัน musl สำหรับแพลตฟอร์มนี้\nโปรดส่ง issue พร้อมข้อมูลระบบที่พิมพ์ด้านบน เพื่อให้ผู้พัฒนาอเพิ่มแพ็กเกจที่ขาดหาย"
         ;;
     id_ID)
         MSG_INSTALL="Memasang safe-rm ke"
@@ -242,9 +302,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Mengekstrak..."
         MSG_UNSUPPORTED="Tidak didukung:"
         MSG_NEED_TOOLS="Kesalahan: alat yang diperlukan tidak ada."
-        MSG_MANUAL_INSTALL="Silakan pasang alat berikut secara manual lalu coba lagi:"
+        MSG_CURRENT_DISTRO="Distribusi saat ini"
+        MSG_MISSING="Hilang"
+        MSG_RUN_INSTALL="Silakan jalankan perintah berikut untuk memasang:"
+        MSG_UNKNOWN_OS="Distribusi saat ini tidak dikenali, silakan pasang alat yang hilang secara manual"
+        MSG_AFTER_INSTALL="Setelah pemasangan, silakan jalankan ulang skrip ini."
         MSG_DOWNLOAD_FAILED="Unduhan gagal"
         MSG_EXTRACT_FAILED="Ekstraksi gagal"
+        MSG_TRY_GNU="Menyiapkan versi gnu..."
+        MSG_TRY_MUSL="Menyiapkan versi musl..."
+        MSG_GNU_SELECTED="Sedang memasang versi gnu..."
+        MSG_MUSL_SELECTED="Sedang memasang versi musl..."
+        MSG_FALLBACK_MUSL="Versi gnu tidak tersedia, kembali ke versi musl..."
+        MSG_BOTH_FAILED="Kesalahan: versi gnu dan musl tidak dapat dipasang di sistem saat ini.\nKemungkinan penyebab: distribusi/arsitektur belum didukung, atau versi musl belum dikompilasi untuk platform ini.\nSilakan buat issue dengan menyertakan informasi sistem yang tercetak di atas agar pengembang dapat menambahkan paket yang hilang."
         ;;
     ms_MY)
         MSG_INSTALL="Memasang safe-rm ke"
@@ -269,9 +339,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Mengekstrak..."
         MSG_UNSUPPORTED="Tidak disokong:"
         MSG_NEED_TOOLS="Ralat: alat diperlukan tiada."
-        MSG_MANUAL_INSTALL="Sila pasang alat berikut secara manual kemudian cuba lagi:"
+        MSG_CURRENT_DISTRO="Distribusi semasa"
+        MSG_MISSING="Hilang"
+        MSG_RUN_INSTALL="Sila jalankan arahan berikut untuk memasang:"
+        MSG_UNKNOWN_OS="Distribusi semasa tidak dikenali, sila pasang alat yang hilang secara manual"
+        MSG_AFTER_INSTALL="Selepas pemasangan, sila jalankan semula skrip ini."
         MSG_DOWNLOAD_FAILED="Muat turun gagal"
         MSG_EXTRACT_FAILED="Ekstrak gagal"
+        MSG_TRY_GNU="Menyediakan versi gnu..."
+        MSG_TRY_MUSL="Menyediakan versi musl..."
+        MSG_GNU_SELECTED="Sedang memasang versi gnu..."
+        MSG_MUSL_SELECTED="Sedang memasang versi musl..."
+        MSG_FALLBACK_MUSL="Versi gnu tidak tersedia, kembali ke versi musl..."
+        MSG_BOTH_FAILED="Ralat: versi gnu dan musl tidak boleh dipasang pada sistem semasa.\nKemungkinan punca: distribusi/arkitektur belum disokong, atau versi musl belum dikompil untuk platform ini.\nSila buat issue dengan menyertakan maklumat sistem yang dicetak di atas supaya pembangun boleh menambah pakej yang hilang."
         ;;
     hi_IN)
         MSG_INSTALL="safe-rm को इसमें स्थापित कर रहे हैं:"
@@ -296,9 +376,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="निकाला जा रहा है..."
         MSG_UNSUPPORTED="असमर्थित:"
         MSG_NEED_TOOLS="त्रुटि: आवश्यक उपकरण अनुपस्थित।"
-        MSG_MANUAL_INSTALL="कृपया निम्नलिखित उपकरण मैन्युअल रूप से स्थापित करें और पुनः प्रयास करें:"
+        MSG_CURRENT_DISTRO="वर्तमान वितरण"
+        MSG_MISSING="अनुपस्थित"
+        MSG_RUN_INSTALL="कृपया स्थापित करने के लिए निम्नलिखित कमांड चलाएँ:"
+        MSG_UNKNOWN_OS="वर्तमान वितरण पहचाना नहीं जा सका, कृपया अनुपस्थित उपकरण मैन्युअल रूप से स्थापित करें"
+        MSG_AFTER_INSTALL="स्थापना के बाद, कृपया इस स्क्रिप्ट को पुनः चलाएँ।"
         MSG_DOWNLOAD_FAILED="डाउनलोड विफल"
         MSG_EXTRACT_FAILED="निष्कर्षण विफल"
+        MSG_TRY_GNU="gnu संस्करण तैयार किया जा रहा है..."
+        MSG_TRY_MUSL="musl संस्करण तैयार किया जा रहा है..."
+        MSG_GNU_SELECTED="वर्तमान में gnu संस्करण स्थापित किया जा रहा है..."
+        MSG_MUSL_SELECTED="वर्तमान में musl संस्करण स्थापित किया जा रहा है..."
+        MSG_FALLBACK_MUSL="gnu संस्करण उपलब्ध नहीं है, musl संस्करण पर वापस जा रहे हैं..."
+        MSG_BOTH_FAILED="त्रुटि: gnu और musl दोनों संस्करण वर्तमान सिस्टम पर स्थापित नहीं किए जा सकते।\nसंभावित कारण: वितरण/आर्किटेक्चर अभी समर्थित नहीं है, या इस प्लेटफ़ॉर्म के लिए musl संस्करण कंपाइल नहीं किया गया है।\nकृपया ऊपर प्रिंट की गई सिस्टम जानकारी के साथ issue सबमिट करें ताकि डेवलपर गुम पैकेज जोड़ सकें।"
         ;;
     tr_TR)
         MSG_INSTALL="safe-rm şuraya kuruluyor:"
@@ -323,9 +413,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Çıkarılıyor..."
         MSG_UNSUPPORTED="Desteklenmiyor:"
         MSG_NEED_TOOLS="Hata: gerekli araçlar eksik."
-        MSG_MANUAL_INSTALL="Lütfen aşağıdaki araçları elle kurun ve yeniden deneyin:"
+        MSG_CURRENT_DISTRO="Mevcut dağıtım"
+        MSG_MISSING="Eksik"
+        MSG_RUN_INSTALL="Lütfen kurmak için aşağıdaki komutu çalıştırın:"
+        MSG_UNKNOWN_OS="Mevcut dağıtım tanınamadı, lütfen eksik araçları elle kurun"
+        MSG_AFTER_INSTALL="Kurulumdan sonra lütfen bu betiği yeniden çalıştırın."
         MSG_DOWNLOAD_FAILED="İndirme başarısız"
         MSG_EXTRACT_FAILED="Çıkarma başarısız"
+        MSG_TRY_GNU="gnu sürümü hazırlanıyor..."
+        MSG_TRY_MUSL="musl sürümü hazırlanıyor..."
+        MSG_GNU_SELECTED="Şu anda gnu sürümü kuruluyor..."
+        MSG_MUSL_SELECTED="Şu anda musl sürümü kuruluyor..."
+        MSG_FALLBACK_MUSL="gnu sürümü kullanılamıyor, musl sürümüne geri dönülüyor..."
+        MSG_BOTH_FAILED="Hata: gnu ve musl sürümleri mevcut sistemde kurulamıyor.\nOlası nedenler: dağıtım/mimari henüz desteklenmiyor veya bu platform için musl sürümü derlenmemiş.\nLütfen yukarıda yazdırılan sistem bilgileriyle birlikte issue gönderin, böylece geliştiriciler eksik paketi ekleyebilir."
         ;;
     ru_RU)
         MSG_INSTALL="Установка safe-rm в"
@@ -350,9 +450,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Распаковка..."
         MSG_UNSUPPORTED="Не поддерживается:"
         MSG_NEED_TOOLS="Ошибка: отсутствуют необходимые инструменты."
-        MSG_MANUAL_INSTALL="Пожалуйста, установите следующие инструменты вручную и повторите:"
+        MSG_CURRENT_DISTRO="Текущий дистрибутив"
+        MSG_MISSING="Отсутствует"
+        MSG_RUN_INSTALL="Пожалуйста, выполните следующую команду для установки:"
+        MSG_UNKNOWN_OS="Не удалось определить текущий дистрибутив, установите отсутствующие инструменты вручную"
+        MSG_AFTER_INSTALL="После установки, пожалуйста, перезапустите этот скрипт."
         MSG_DOWNLOAD_FAILED="Ошибка загрузки"
         MSG_EXTRACT_FAILED="Ошибка распаковки"
+        MSG_TRY_GNU="Подготовка версии gnu..."
+        MSG_TRY_MUSL="Подготовка версии musl..."
+        MSG_GNU_SELECTED="Сейчас устанавливается версия gnu..."
+        MSG_MUSL_SELECTED="Сейчас устанавливается версия musl..."
+        MSG_FALLBACK_MUSL="Версия gnu недоступна, возврат к версии musl..."
+        MSG_BOTH_FAILED="Ошибка: ни версию gnu, ни версию musl невозможно установить в текущей системе.\nВозможные причины: дистрибутив/архитектура ещё не поддерживается, или для этой платформы не скомпилирована версия musl.\nПожалуйста, создайте issue, приложив системную информацию, напечатанную выше, чтобы разработчики могли добавить недостающий пакет."
         ;;
     uk_UA)
         MSG_INSTALL="Встановлення safe-rm у"
@@ -377,9 +487,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Розпакування..."
         MSG_UNSUPPORTED="Не підтримується:"
         MSG_NEED_TOOLS="Помилка: відсутні необхідні інструменти."
-        MSG_MANUAL_INSTALL="Будь ласка, встановіть наведені нижче інструменти вручну та повторіть:"
+        MSG_CURRENT_DISTRO="Поточний дистрибутив"
+        MSG_MISSING="Відсутній"
+        MSG_RUN_INSTALL="Будь ласка, виконайте наступну команду для встановлення:"
+        MSG_UNKNOWN_OS="Не вдалося розпізнати поточний дистрибутив, будь ласка, встановіть відсутні інструменти вручну"
+        MSG_AFTER_INSTALL="Після встановлення, будь ласка, перезапустіть цей скрипт."
         MSG_DOWNLOAD_FAILED="Помилка завантаження"
         MSG_EXTRACT_FAILED="Помилка розпакування"
+        MSG_TRY_GNU="Підготовка версії gnu..."
+        MSG_TRY_MUSL="Підготовка версії musl..."
+        MSG_GNU_SELECTED="Зараз встановлюється версія gnu..."
+        MSG_MUSL_SELECTED="Зараз встановлюється версія musl..."
+        MSG_FALLBACK_MUSL="Версія gnu недоступна, повернення до версії musl..."
+        MSG_BOTH_FAILED="Помилка: ні версію gnu, ні версію musl неможливо встановити в поточній системі.\nМожливі причини: дистрибутив/архітектура ще не підтримується, або для цієї платформи не скомпільовано версію musl.\nБудь ласка, створіть issue, додавши системну інформацію, надруковану вище, щоб розробники могли додати відсутній пакет."
         ;;
     pl_PL)
         MSG_INSTALL="Instalowanie safe-rm do"
@@ -404,9 +524,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Rozpakowywanie..."
         MSG_UNSUPPORTED="Nieobsługiwane:"
         MSG_NEED_TOOLS="Błąd: brak wymaganych narzędzi."
-        MSG_MANUAL_INSTALL="Zainstaluj ręcznie następujące narzędzia i spróbuj ponownie:"
+        MSG_CURRENT_DISTRO="Bieżąca dystrybucja"
+        MSG_MISSING="Brak"
+        MSG_RUN_INSTALL="Uruchom następujące polecenie, aby zainstalować:"
+        MSG_UNKNOWN_OS="Nie udało się rozpoznać bieżącej dystrybucji, zainstaluj brakujące narzędzia ręcznie"
+        MSG_AFTER_INSTALL="Po instalacji uruchom ponownie ten skrypt."
         MSG_DOWNLOAD_FAILED="Pobieranie nie powiodło się"
         MSG_EXTRACT_FAILED="Rozpakowanie nie powiodło się"
+        MSG_TRY_GNU="Przygotowywanie wersji gnu..."
+        MSG_TRY_MUSL="Przygotowywanie wersji musl..."
+        MSG_GNU_SELECTED="Trwa instalacja wersji gnu..."
+        MSG_MUSL_SELECTED="Trwa instalacja wersji musl..."
+        MSG_FALLBACK_MUSL="Wersja gnu niedostępna, powrót do wersji musl..."
+        MSG_BOTH_FAILED="Błąd: ani wersji gnu, ani musl nie można zainstalować w bieżącym systemie.\nMożliwe przyczyny: dystrybucja/architektura nie jest jeszcze obsługiwana lub wersja musl nie została skompilowana dla tej platformy.\nUtwórz issue, dołączając informacje systemowe wydrukowane powyżej, aby deweloperzy mogli dodać brakujący pakiet."
         ;;
     cs_CZ)
         MSG_INSTALL="Instalace safe-rm do"
@@ -431,9 +561,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Rozbalování..."
         MSG_UNSUPPORTED="Nepodporováno:"
         MSG_NEED_TOOLS="Chyba: chybí požadované nástroje."
-        MSG_MANUAL_INSTALL="Nainstalujte prosím ručně následující nástroje a zkuste to znovu:"
+        MSG_CURRENT_DISTRO="Aktuální distribuce"
+        MSG_MISSING="Chybí"
+        MSG_RUN_INSTALL="Chcete-li nainstalovat, spusťte následující příkaz:"
+        MSG_UNKNOWN_OS="Aktuální distribuci nelze rozpoznat, nainstalujte chybějící nástroje ručně"
+        MSG_AFTER_INSTALL="Po instalaci prosím znovu spusťte tento skript."
         MSG_DOWNLOAD_FAILED="Stahování selhalo"
         MSG_EXTRACT_FAILED="Rozbalení selhalo"
+        MSG_TRY_GNU="Připravuje se verze gnu..."
+        MSG_TRY_MUSL="Připravuje se verze musl..."
+        MSG_GNU_SELECTED="Právě se instaluje verze gnu..."
+        MSG_MUSL_SELECTED="Právě se instaluje verze musl..."
+        MSG_FALLBACK_MUSL="Verze gnu není k dispozici, návrat k verzi musl..."
+        MSG_BOTH_FAILED="Chyba: ani verzi gnu, ani musl nelze v aktuálním systému nainstalovat.\nMožné příčiny: distribuce/architektura zatím není podporována, nebo pro tuto platformu není zkompilována verze musl.\nVytvořte issue a přiložte výše uvedené systémové informace, aby vývojáři mohli doplnit chybějící balíček."
         ;;
     hu_HU)
         MSG_INSTALL="safe-rm telepítése ide:"
@@ -458,9 +598,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Kibontás..."
         MSG_UNSUPPORTED="Nem támogatott:"
         MSG_NEED_TOOLS="Hiba: hiányoznak a szükséges eszközök."
-        MSG_MANUAL_INSTALL="Kérjük, telepítse kézzel a következő eszközöket, majd próbálja újra:"
+        MSG_CURRENT_DISTRO="Jelenlegi disztribúció"
+        MSG_MISSING="Hiányzik"
+        MSG_RUN_INSTALL="A telepítéshez futtassa a következő parancsot:"
+        MSG_UNKNOWN_OS="A jelenlegi disztribúció nem azonosítható, kérjük, telepítse manuálisan a hiányzó eszközöket"
+        MSG_AFTER_INSTALL="Telepítés után kérjük, futtassa újra ezt a szkriptet."
         MSG_DOWNLOAD_FAILED="Letöltés sikertelen"
         MSG_EXTRACT_FAILED="Kibontás sikertelen"
+        MSG_TRY_GNU="gnu verzió előkészítése..."
+        MSG_TRY_MUSL="musl verzió előkészítése..."
+        MSG_GNU_SELECTED="Jelenleg a gnu verzió telepítése folyik..."
+        MSG_MUSL_SELECTED="Jelenleg a musl verzió telepítése folyik..."
+        MSG_FALLBACK_MUSL="A gnu verzió nem elérhető, visszaállás a musl verzióra..."
+        MSG_BOTH_FAILED="Hiba: sem a gnu, sem a musl verzió nem telepíthető a jelenlegi rendszerre.\nLehetséges okok: a disztribúció/architektúra még nem támogatott, vagy ehhez a platformhoz nem fordították le a musl verziót.\nKérjük, nyisson issue-t a fent kiírt rendszerinformációkkal, hogy a fejlesztők hozzáadhassák a hiányzó csomagot."
         ;;
     ro_RO)
         MSG_INSTALL="Se instalează safe-rm în"
@@ -485,9 +635,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Se extrage..."
         MSG_UNSUPPORTED="Nesuportat:"
         MSG_NEED_TOOLS="Eroare: lipsesc instrumentele necesare."
-        MSG_MANUAL_INSTALL="Vă rugăm să instalați manual următoarele instrumente și să reîncercați:"
+        MSG_CURRENT_DISTRO="Distribuția curentă"
+        MSG_MISSING="Lipsă"
+        MSG_RUN_INSTALL="Rulați următoarea comandă pentru a instala:"
+        MSG_UNKNOWN_OS="Distribuția curentă nu a putut fi identificată, vă rugăm să instalați manual instrumentele lipsă"
+        MSG_AFTER_INSTALL="După instalare, vă rugăm să rulați din nou acest script."
         MSG_DOWNLOAD_FAILED="Descărcare eșuată"
         MSG_EXTRACT_FAILED="Extragere eșuată"
+        MSG_TRY_GNU="Se pregătește versiunea gnu..."
+        MSG_TRY_MUSL="Se pregătește versiunea musl..."
+        MSG_GNU_SELECTED="Se instalează versiunea gnu..."
+        MSG_MUSL_SELECTED="Se instalează versiunea musl..."
+        MSG_FALLBACK_MUSL="Versiunea gnu nu este disponibilă, se revine la versiunea musl..."
+        MSG_BOTH_FAILED="Eroare: nici versiunea gnu, nici cea musl nu pot fi instalate pe sistemul curent.\nCauze posibile: distribuția/arhitectura nu este încă acceptată sau versiunea musl nu a fost compilată pentru această platformă.\nVă rugăm să deschideți un issue cu informațiile de sistem afișate mai sus, pentru ca dezvoltatorii să poată adăuga pachetul lipsă."
         ;;
     el_GR)
         MSG_INSTALL="Εγκατάσταση safe-rm στο"
@@ -512,9 +672,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Εξαγωγή..."
         MSG_UNSUPPORTED="Μη υποστηριζόμενο:"
         MSG_NEED_TOOLS="Σφάλμα: λείπουν τα απαιτούμενα εργαλεία."
-        MSG_MANUAL_INSTALL="Εγκαταστήστε χειροκίνητα τα παρακάτω εργαλεία και δοκιμάστε ξανά:"
+        MSG_CURRENT_DISTRO="Τρέχουσα διανομή"
+        MSG_MISSING="Λείπει"
+        MSG_RUN_INSTALL="Εκτελέστε την ακόλουθη εντολή για εγκατάσταση:"
+        MSG_UNKNOWN_OS="Δεν ήταν δυνατή η αναγνώριση της τρέχουσας διανομής, εγκαταστήστε χειροκίνητα τα εργαλεία που λείπουν"
+        MSG_AFTER_INSTALL="Μετά την εγκατάσταση, εκτελέστε ξανά αυτό το σενάριο."
         MSG_DOWNLOAD_FAILED="Η λήψη απέτυχε"
         MSG_EXTRACT_FAILED="Η εξαγωγή απέτυχε"
+        MSG_TRY_GNU="Προετοιμασία έκδοσης gnu..."
+        MSG_TRY_MUSL="Προετοιμασία έκδοσης musl..."
+        MSG_GNU_SELECTED="Εγκαθίσταται η έκδοση gnu..."
+        MSG_MUSL_SELECTED="Εγκαθίσταται η έκδοση musl..."
+        MSG_FALLBACK_MUSL="Η έκδοση gnu δεν είναι διαθέσιμη, επιστροφή στην έκδοση musl..."
+        MSG_BOTH_FAILED="Σφάλμα: ούτε η έκδοση gnu ούτε η έκδοση musl μπορούν να εγκατασταθούν στο τρέχον σύστημα.\nΠιθανές αιτίες: η διανομή/αρχιτεκτονική δεν υποστηρίζεται ακόμη ή η έκδοση musl δεν έχει μεταγλωττιστεί για αυτή την πλατφόρμα.\nΥποβάλετε issue με τις παραπάνω πληροφορίες συστήματος, ώστε οι προγραμματιστές να προσθέσουν το πακέτο που λείπει."
         ;;
     de_DE)
         MSG_INSTALL="safe-rm wird installiert nach"
@@ -539,11 +709,21 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Wird entpackt..."
         MSG_UNSUPPORTED="Nicht unterstützt:"
         MSG_NEED_TOOLS="Fehler: erforderliche Werkzeuge fehlen."
-        MSG_MANUAL_INSTALL="Bitte installieren Sie die folgenden Werkzeuge manuell und versuchen Sie es erneut:"
+        MSG_CURRENT_DISTRO="Aktuelle Distribution"
+        MSG_MISSING="Fehlt"
+        MSG_RUN_INSTALL="Bitte führen Sie den folgenden Befehl zur Installation aus:"
+        MSG_UNKNOWN_OS="Die aktuelle Distribution konnte nicht erkannt werden. Bitte installieren Sie fehlende Werkzeuge manuell"
+        MSG_AFTER_INSTALL="Bitte führen Sie dieses Skript nach der Installation erneut aus."
         MSG_DOWNLOAD_FAILED="Download fehlgeschlagen"
         MSG_EXTRACT_FAILED="Entpacken fehlgeschlagen"
+        MSG_TRY_GNU="gnu-Version wird vorbereitet..."
+        MSG_TRY_MUSL="musl-Version wird vorbereitet..."
+        MSG_GNU_SELECTED="Es wird derzeit die gnu-Version installiert..."
+        MSG_MUSL_SELECTED="Es wird derzeit die musl-Version installiert..."
+        MSG_FALLBACK_MUSL="gnu-Version nicht verfügbar, wechsle zur musl-Version..."
+        MSG_BOTH_FAILED="Fehler: Weder die gnu- noch die musl-Version kann auf diesem System installiert werden.\nMögliche Ursachen: Distribution/Architektur wird noch nicht unterstützt oder für diese Plattform wurde keine musl-Version kompiliert.\nBitte ein Issue mit den oben ausgegebenen Systeminformationen einreichen, damit die Entwickler das fehlende Paket hinzufügen können."
         ;;
-    fr_FR)
+    fr_FR|fr_CA|fr_BE|fr_CH)
         MSG_INSTALL="Installation de safe-rm dans"
         MSG_DONE="Installation terminée."
         MSG_UNINSTALL="Désinstallation de safe-rm..."
@@ -566,11 +746,21 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Extraction..."
         MSG_UNSUPPORTED="Non pris en charge :"
         MSG_NEED_TOOLS="Erreur : outils requis manquants."
-        MSG_MANUAL_INSTALL="Veuillez installer manuellement les outils suivants puis réessayer :"
+        MSG_CURRENT_DISTRO="Distribution actuelle"
+        MSG_MISSING="Manquant"
+        MSG_RUN_INSTALL="Veuillez exécuter la commande suivante pour installer :"
+        MSG_UNKNOWN_OS="La distribution actuelle n'a pas pu être reconnue, veuillez installer manuellement les outils manquants"
+        MSG_AFTER_INSTALL="Après l'installation, veuillez réexécuter ce script."
         MSG_DOWNLOAD_FAILED="Échec du téléchargement"
         MSG_EXTRACT_FAILED="Échec de l'extraction"
+        MSG_TRY_GNU="Préparation de la version gnu..."
+        MSG_TRY_MUSL="Préparation de la version musl..."
+        MSG_GNU_SELECTED="Installation de la version gnu en cours..."
+        MSG_MUSL_SELECTED="Installation de la version musl en cours..."
+        MSG_FALLBACK_MUSL="Version gnu indisponible, retour à la version musl..."
+        MSG_BOTH_FAILED="Erreur : ni la version gnu ni la version musl ne peut être installée sur le système actuel.\nCauses possibles : distribution/architecture pas encore prise en charge, ou version musl non compilée pour cette plateforme.\nVeuillez ouvrir un issue en joignant les informations système affichées ci-dessus afin que les développeurs puissent ajouter le paquet manquant."
         ;;
-    es_ES|es_MX|es_AR)
+    es_ES|es_MX|es_AR|es_CO|es_CL|es_PE)
         MSG_INSTALL="Instalando safe-rm en"
         MSG_DONE="Instalación completa."
         MSG_UNINSTALL="Desinstalando safe-rm..."
@@ -593,11 +783,21 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Extrayendo..."
         MSG_UNSUPPORTED="No soportado:"
         MSG_NEED_TOOLS="Error: faltan herramientas necesarias."
-        MSG_MANUAL_INSTALL="Instale manualmente las siguientes herramientas y vuelva a intentarlo:"
+        MSG_CURRENT_DISTRO="Distribución actual"
+        MSG_MISSING="Falta"
+        MSG_RUN_INSTALL="Ejecute el siguiente comando para instalar:"
+        MSG_UNKNOWN_OS="No se pudo reconocer la distribución actual, instale manualmente las herramientas que faltan"
+        MSG_AFTER_INSTALL="Después de la instalación, vuelva a ejecutar este script."
         MSG_DOWNLOAD_FAILED="Descarga fallida"
         MSG_EXTRACT_FAILED="Extracción fallida"
+        MSG_TRY_GNU="Preparando versión gnu..."
+        MSG_TRY_MUSL="Preparando versión musl..."
+        MSG_GNU_SELECTED="Se está instalando la versión gnu..."
+        MSG_MUSL_SELECTED="Se está instalando la versión musl..."
+        MSG_FALLBACK_MUSL="Versión gnu no disponible, volviendo a versión musl..."
+        MSG_BOTH_FAILED="Error: ni la versión gnu ni la musl se pueden instalar en el sistema actual.\nPosibles causas: distribución/arquitectura aún no compatible, o la versión musl no está compilada para esta plataforma.\nAbra un issue adjuntando la información del sistema impresa arriba para que los desarrolladores puedan añadir el paquete faltante."
         ;;
-    pt_PT|pt_BR)
+    pt_PT|pt_BR|pt_AO|pt_MZ)
         MSG_INSTALL="Instalando safe-rm em"
         MSG_DONE="Instalação concluída."
         MSG_UNINSTALL="Desinstalando safe-rm..."
@@ -620,9 +820,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Extraindo..."
         MSG_UNSUPPORTED="Não suportado:"
         MSG_NEED_TOOLS="Erro: ferramentas necessárias ausentes."
-        MSG_MANUAL_INSTALL="Instale manualmente as seguintes ferramentas e tente novamente:"
+        MSG_CURRENT_DISTRO="Distribuição atual"
+        MSG_MISSING="Faltando"
+        MSG_RUN_INSTALL="Execute o seguinte comando para instalar:"
+        MSG_UNKNOWN_OS="Não foi possível reconhecer a distribuição atual, instale manualmente as ferramentas ausentes"
+        MSG_AFTER_INSTALL="Após a instalação, execute novamente este script."
         MSG_DOWNLOAD_FAILED="Falha no download"
         MSG_EXTRACT_FAILED="Falha na extração"
+        MSG_TRY_GNU="Preparando versão gnu..."
+        MSG_TRY_MUSL="Preparando versão musl..."
+        MSG_GNU_SELECTED="Instalando versão gnu..."
+        MSG_MUSL_SELECTED="Instalando versão musl..."
+        MSG_FALLBACK_MUSL="Versão gnu indisponível, voltando para versão musl..."
+        MSG_BOTH_FAILED="Erro: nem a versão gnu nem a versão musl podem ser instaladas no sistema atual.\nCausas possíveis: distribuição/arquitetura ainda não suportada, ou a versão musl não foi compilada para esta plataforma.\nAbra um issue com as informações do sistema impressas acima para que os desenvolvedores possam adicionar o pacote ausente."
         ;;
     it_IT)
         MSG_INSTALL="Installazione di safe-rm in"
@@ -647,9 +857,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Estrazione in corso..."
         MSG_UNSUPPORTED="Non supportato:"
         MSG_NEED_TOOLS="Errore: strumenti necessari mancanti."
-        MSG_MANUAL_INSTALL="Installa manualmente i seguenti strumenti e riprova:"
+        MSG_CURRENT_DISTRO="Distribuzione attuale"
+        MSG_MISSING="Mancante"
+        MSG_RUN_INSTALL="Esegui il seguente comando per installare:"
+        MSG_UNKNOWN_OS="Impossibile riconoscere la distribuzione attuale, installa manualmente gli strumenti mancanti"
+        MSG_AFTER_INSTALL="Dopo l'installazione, esegui di nuovo questo script."
         MSG_DOWNLOAD_FAILED="Download non riuscito"
         MSG_EXTRACT_FAILED="Estrazione non riuscita"
+        MSG_TRY_GNU="Preparazione versione gnu..."
+        MSG_TRY_MUSL="Preparazione versione musl..."
+        MSG_GNU_SELECTED="Installazione della versione gnu in corso..."
+        MSG_MUSL_SELECTED="Installazione della versione musl in corso..."
+        MSG_FALLBACK_MUSL="Versione gnu non disponibile, ritorno alla versione musl..."
+        MSG_BOTH_FAILED="Errore: né la versione gnu né la versione musl possono essere installate sul sistema corrente.\nPossibili cause: distribuzione/architettura non ancora supportata, o versione musl non compilata per questa piattaforma.\nApri un issue allegando le informazioni di sistema stampate sopra, così gli sviluppatori possono aggiungere il pacchetto mancante."
         ;;
     nl_NL)
         MSG_INSTALL="safe-rm installeren naar"
@@ -674,9 +894,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Uitpakken..."
         MSG_UNSUPPORTED="Niet ondersteund:"
         MSG_NEED_TOOLS="Fout: vereiste hulpmiddelen ontbreken."
-        MSG_MANUAL_INSTALL="Installeer de volgende hulpmiddelen handmatig en probeer het opnieuw:"
+        MSG_CURRENT_DISTRO="Huidige distributie"
+        MSG_MISSING="Ontbreekt"
+        MSG_RUN_INSTALL="Voer het volgende commando uit om te installeren:"
+        MSG_UNKNOWN_OS="Huidige distributie kon niet worden herkend, installeer ontbrekende hulpmiddelen handmatig"
+        MSG_AFTER_INSTALL="Voer dit script opnieuw uit na de installatie."
         MSG_DOWNLOAD_FAILED="Download mislukt"
         MSG_EXTRACT_FAILED="Uitpakken mislukt"
+        MSG_TRY_GNU="gnu-versie wordt voorbereid..."
+        MSG_TRY_MUSL="musl-versie wordt voorbereid..."
+        MSG_GNU_SELECTED="Momenteel wordt de gnu-versie geïnstalleerd..."
+        MSG_MUSL_SELECTED="Momenteel wordt de musl-versie geïnstalleerd..."
+        MSG_FALLBACK_MUSL="gnu-versie niet beschikbaar, terugvallen op musl-versie..."
+        MSG_BOTH_FAILED="Fout: noch de gnu-versie noch de musl-versie kan op het huidige systeem worden geïnstalleerd.\nMogelijke oorzaken: distributie/architectuur wordt nog niet ondersteund, of de musl-versie is niet gecompileerd voor dit platform.\nOpen een issue met de hierboven afgedrukte systeeminformatie, zodat ontwikkelaars het ontbrekende pakket kunnen toevoegen."
         ;;
     sv_SE)
         MSG_INSTALL="Installerar safe-rm till"
@@ -701,9 +931,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Packar upp..."
         MSG_UNSUPPORTED="Stöds inte:"
         MSG_NEED_TOOLS="Fel: nödvändiga verktyg saknas."
-        MSG_MANUAL_INSTALL="Installera följande verktyg manuellt och försök igen:"
+        MSG_CURRENT_DISTRO="Aktuell distribution"
+        MSG_MISSING="Saknas"
+        MSG_RUN_INSTALL="Kör följande kommando för att installera:"
+        MSG_UNKNOWN_OS="Aktuell distribution kunde inte identifieras, installera saknade verktyg manuellt"
+        MSG_AFTER_INSTALL="Kör detta skript igen efter installationen."
         MSG_DOWNLOAD_FAILED="Nedladdning misslyckades"
         MSG_EXTRACT_FAILED="Uppackning misslyckades"
+        MSG_TRY_GNU="Förbereder gnu-version..."
+        MSG_TRY_MUSL="Förbereder musl-version..."
+        MSG_GNU_SELECTED="Installerar för närvarande gnu-versionen..."
+        MSG_MUSL_SELECTED="Installerar för närvarande musl-versionen..."
+        MSG_FALLBACK_MUSL="gnu-versionen är inte tillgänglig, faller tillbaka till musl-versionen..."
+        MSG_BOTH_FAILED="Fel: varken gnu- eller musl-versionen kan installeras på det aktuella systemet.\nMöjliga orsaker: distributionen/arkitekturen stöds inte ännu, eller så är musl-versionen inte kompilerad för denna plattform.\nSkapa ett issue med systeminformationen ovan så att utvecklarna kan lägga till det saknade paketet."
         ;;
     nb_NO|nn_NO)
         MSG_INSTALL="Installerer safe-rm til"
@@ -728,9 +968,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Pakker ut..."
         MSG_UNSUPPORTED="Ikke støttet:"
         MSG_NEED_TOOLS="Feil: nødvendige verktøy mangler."
-        MSG_MANUAL_INSTALL="Installer følgende verktøy manuelt og prøv igjen:"
+        MSG_CURRENT_DISTRO="Gjeldende distribusjon"
+        MSG_MISSING="Mangler"
+        MSG_RUN_INSTALL="Kjør følgende kommando for å installere:"
+        MSG_UNKNOWN_OS="Gjeldende distribusjon ble ikke gjenkjent, installer manglende verktøy manuelt"
+        MSG_AFTER_INSTALL="Etter installasjonen, kjør dette skriptet på nytt."
         MSG_DOWNLOAD_FAILED="Nedlasting mislyktes"
         MSG_EXTRACT_FAILED="Utpakking mislyktes"
+        MSG_TRY_GNU="Forbereder gnu-versjon..."
+        MSG_TRY_MUSL="Forbereder musl-versjon..."
+        MSG_GNU_SELECTED="Installerer for øyeblikket gnu-versjonen..."
+        MSG_MUSL_SELECTED="Installerer for øyeblikket musl-versjonen..."
+        MSG_FALLBACK_MUSL="gnu-versjonen er utilgjengelig, faller tilbake til musl-versjonen..."
+        MSG_BOTH_FAILED="Feil: verken gnu- eller musl-versjonen kan installeres på gjeldende system.\nMulige årsaker: distribusjonen/arkitekturen støttes ikke ennå, eller musl-versjonen er ikke kompilert for denne plattformen.\nOpprett et issue med systeminformasjonen som er skrevet ut ovenfor, slik at utviklere kan legge til den manglende pakken."
         ;;
     da_DK)
         MSG_INSTALL="Installerer safe-rm til"
@@ -755,9 +1005,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Udpakker..."
         MSG_UNSUPPORTED="Ikke understøttet:"
         MSG_NEED_TOOLS="Fejl: nødvendige værktøjer mangler."
-        MSG_MANUAL_INSTALL="Installer følgende værktøjer manuelt og prøv igen:"
+        MSG_CURRENT_DISTRO="Aktuel distribution"
+        MSG_MISSING="Mangler"
+        MSG_RUN_INSTALL="Kør følgende kommando for at installere:"
+        MSG_UNKNOWN_OS="Den aktuelle distribution blev ikke genkendt, installer manglende værktøjer manuelt"
+        MSG_AFTER_INSTALL="Efter installationen, kør dette script igen."
         MSG_DOWNLOAD_FAILED="Download mislykkedes"
         MSG_EXTRACT_FAILED="Udpakning mislykkedes"
+        MSG_TRY_GNU="Forbereder gnu-version..."
+        MSG_TRY_MUSL="Forbereder musl-version..."
+        MSG_GNU_SELECTED="Installerer i øjeblikket gnu-versionen..."
+        MSG_MUSL_SELECTED="Installerer i øjeblikket musl-versionen..."
+        MSG_FALLBACK_MUSL="gnu-versionen er ikke tilgængelig, falder tilbage til musl-versionen..."
+        MSG_BOTH_FAILED="Fejl: hverken gnu- eller musl-versionen kan installeres på det aktuelle system.\nMulige årsager: distributionen/arkitekturen understøttes endnu ikke, eller musl-versionen er ikke kompileret til denne platform.\nOpret et issue med systemoplysningerne ovenfor, så udviklerne kan tilføje den manglende pakke."
         ;;
     fi_FI)
         MSG_INSTALL="Asennetaan safe-rm kohteeseen"
@@ -782,11 +1042,21 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Puretaan..."
         MSG_UNSUPPORTED="Ei tuettu:"
         MSG_NEED_TOOLS="Virhe: tarvittavat työkalut puuttuvat."
-        MSG_MANUAL_INSTALL="Asenna seuraavat työkalut manuaalisesti ja yritä uudelleen:"
+        MSG_CURRENT_DISTRO="Nykyinen jakelu"
+        MSG_MISSING="Puuttuu"
+        MSG_RUN_INSTALL="Suorita seuraava komento asentaaksesi:"
+        MSG_UNKNOWN_OS="Nykyistä jakelua ei tunnistettu, asenna puuttuvat työkalut manuaalisesti"
+        MSG_AFTER_INSTALL="Asennuksen jälkeen suorita tämä skripti uudelleen."
         MSG_DOWNLOAD_FAILED="Lataus epäonnistui"
         MSG_EXTRACT_FAILED="Purku epäonnistui"
+        MSG_TRY_GNU="Valmistellaan gnu-versiota..."
+        MSG_TRY_MUSL="Valmistellaan musl-versiota..."
+        MSG_GNU_SELECTED="Asennetaan parhaillaan gnu-versiota..."
+        MSG_MUSL_SELECTED="Asennetaan parhaillaan musl-versiota..."
+        MSG_FALLBACK_MUSL="gnu-versio ei ole saatavilla, palataan musl-versioon..."
+        MSG_BOTH_FAILED="Virhe: gnu- tai musl-versiota ei voi asentaa nykyiseen järjestelmään.\nMahdollisia syitä: jakelua/arkkitehtuuria ei vielä tueta, tai musl-versiota ei ole käännetty tälle alustalle.\nLuo issue ja liitä mukaan yllä tulostetut järjestelmätiedot, jotta kehittäjät voivat lisätä puuttuvan paketin."
         ;;
-    ar_SA|ar_EG)
+    ar_SA|ar_EG|ar_AE|ar_MA|ar_DZ)
         MSG_INSTALL="جارٍ تثبيت safe-rm في"
         MSG_DONE="اكتمل التثبيت."
         MSG_UNINSTALL="جارٍ إلغاء تثبيت safe-rm..."
@@ -809,9 +1079,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="جارٍ الاستخراج..."
         MSG_UNSUPPORTED="غير مدعوم:"
         MSG_NEED_TOOLS="خطأ: الأدوات المطلوبة مفقودة."
-        MSG_MANUAL_INSTALL="الرجاء تثبيت الأدوات التالية يدويًا ثم إعادة المحاولة:"
+        MSG_CURRENT_DISTRO="التوزيعة الحالية"
+        MSG_MISSING="مفقود"
+        MSG_RUN_INSTALL="الرجاء تشغيل الأمر التالي للتثبيت:"
+        MSG_UNKNOWN_OS="تعذّر التعرف على التوزيعة الحالية، الرجاء تثبيت الأدوات المفقودة يدويًا"
+        MSG_AFTER_INSTALL="بعد التثبيت، الرجاء إعادة تشغيل هذا السكربت."
         MSG_DOWNLOAD_FAILED="فشل التنزيل"
         MSG_EXTRACT_FAILED="فشل الاستخراج"
+        MSG_TRY_GNU="جارٍ تحضير إصدار gnu..."
+        MSG_TRY_MUSL="جارٍ تحضير إصدار musl..."
+        MSG_GNU_SELECTED="يتم حاليًا تثبيت إصدار gnu..."
+        MSG_MUSL_SELECTED="يتم حاليًا تثبيت إصدار musl..."
+        MSG_FALLBACK_MUSL="إصدار gnu غير متوفر، يتم الرجوع إلى إصدار musl..."
+        MSG_BOTH_FAILED="خطأ: لا يمكن تثبيت إصدار gnu ولا إصدار musl على النظام الحالي.\nالأسباب المحتملة: التوزيعة/المعمارية غير مدعومة بعد، أو لم يتم تصنيف إصدار musl لهذه المنصة.\nيرجى فتح issue مرفقًا بمعلومات النظام المطبوعة أعلاه ليتمكن المطورون من إضافة الحزمة المفقودة."
         ;;
     he_IL)
         MSG_INSTALL="מתקין את safe-rm אל"
@@ -836,9 +1116,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="מחלץ..."
         MSG_UNSUPPORTED="לא נתמך:"
         MSG_NEED_TOOLS="שגיאה: חסרים כלים נדרשים."
-        MSG_MANUAL_INSTALL="אנא התקן ידנית את הכלים הבאים ונסה שוב:"
+        MSG_CURRENT_DISTRO="הפצה נוכחית"
+        MSG_MISSING="חסר"
+        MSG_RUN_INSTALL="אנא הרץ את הפקודה הבאה להתקנה:"
+        MSG_UNKNOWN_OS="לא ניתן היה לזהות את ההפצה הנוכחית, אנא התקן ידנית את הכלים החסרים"
+        MSG_AFTER_INSTALL="לאחר ההתקנה, אנא הרץ מחדש את הסקריפט הזה."
         MSG_DOWNLOAD_FAILED="ההורדה נכשלה"
         MSG_EXTRACT_FAILED="החילוץ נכשל"
+        MSG_TRY_GNU="מכין גרסת gnu..."
+        MSG_TRY_MUSL="מכין גרסת musl..."
+        MSG_GNU_SELECTED="כעת מותקנת גרסת gnu..."
+        MSG_MUSL_SELECTED="כעת מותקנת גרסת musl..."
+        MSG_FALLBACK_MUSL="גרסת gnu אינה זמינה, חוזר לגרסת musl..."
+        MSG_BOTH_FAILED="שגיאה: לא ניתן להתקין את גרסת gnu ולא את גרסת musl במערכת הנוכחית.\nסיבות אפשריות: ההפצה/הארכיטקטורה אינה נתמכת עדיין, או שגרסת musl לא קומפלה לפלטפורמה זו.\nאנא פתח issue וצרף את פרטי המערכת שהודפסו למעלה, כדי שמפתחים יוכלו להוסיף את החבילה החסרה."
         ;;
     fa_IR)
         MSG_INSTALL="در حال نصب safe-rm در"
@@ -863,9 +1153,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="در حال استخراج..."
         MSG_UNSUPPORTED="پشتیبانی نمی‌شود:"
         MSG_NEED_TOOLS="خطا: ابزارهای لازم موجود نیستند."
-        MSG_MANUAL_INSTALL="لطفاً ابزارهای زیر را به‌صورت دستی نصب کنید و دوباره امتحان کنید:"
+        MSG_CURRENT_DISTRO="توزیع فعلی"
+        MSG_MISSING="موجود نیست"
+        MSG_RUN_INSTALL="لطفاً دستور زیر را برای نصب اجرا کنید:"
+        MSG_UNKNOWN_OS="توزیع فعلی شناسایی نشد، لطفاً ابزارهای موجود نبودن را به‌صورت دستی نصب کنید"
+        MSG_AFTER_INSTALL="پس از نصب، لطفاً این اسکریپت را دوباره اجرا کنید."
         MSG_DOWNLOAD_FAILED="دانلود ناموفق"
         MSG_EXTRACT_FAILED="استخراج ناموفق"
+        MSG_TRY_GNU="در حال آماده‌سازی نسخه gnu..."
+        MSG_TRY_MUSL="در حال آماده‌سازی نسخه musl..."
+        MSG_GNU_SELECTED="در حال نصب نسخه gnu..."
+        MSG_MUSL_SELECTED="در حال نصب نسخه musl..."
+        MSG_FALLBACK_MUSL="نسخه gnu در دسترس نیست، بازگشت به نسخه musl..."
+        MSG_BOTH_FAILED="خطا: نه نسخه gnu و نه نسخه musl روی سیستم فعلی قابل نصب نیست.\nدلایل احتمالی: توزیع/معماری هنوز پشتیبانی نمی‌شود، یا نسخه musl برای این پلتفرم کامپایل نشده است.\nلطفاً issue باز کنید و اطلاعات سیستم چاپ‌شده در بالا را ضمیمه کنید تا توسعه‌دهندگان بستهٔ گمشده را اضافه کنند."
         ;;
     bn_BD)
         MSG_INSTALL="safe-rm ইনস্টল করা হচ্ছে"
@@ -890,9 +1190,19 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="এক্সট্র্যাক্ট করা হচ্ছে..."
         MSG_UNSUPPORTED="অসমর্থিত:"
         MSG_NEED_TOOLS="ত্রুটি: প্রয়োজনীয় টুল অনুপস্থিত।"
-        MSG_MANUAL_INSTALL="অনুগ্রহ করে নিচের টুলগুলি ম্যানুয়ালি ইনস্টল করে আবার চেষ্টা করুন:"
+        MSG_CURRENT_DISTRO="বর্তমান ডিস্ট্রিবিউশন"
+        MSG_MISSING="অনুপস্থিত"
+        MSG_RUN_INSTALL="ইনস্টল করতে নিম্নলিখিত কমান্ড চালান:"
+        MSG_UNKNOWN_OS="বর্তমান ডিস্ট্রিবিউশন শনাক্ত করা যায়নি, অনুগ্রহ করে অনুপস্থিত টুল ম্যানুয়ালি ইনস্টল করুন"
+        MSG_AFTER_INSTALL="ইনস্টলেশনের পরে, অনুগ্রহ করে এই স্ক্রিপ্টটি আবার চালান।"
         MSG_DOWNLOAD_FAILED="ডাউনলোড ব্যর্থ"
         MSG_EXTRACT_FAILED="এক্সট্র্যাকশন ব্যর্থ"
+        MSG_TRY_GNU="gnu সংস্করণ প্রস্তুত করা হচ্ছে..."
+        MSG_TRY_MUSL="musl সংস্করণ প্রস্তুত করা হচ্ছে..."
+        MSG_GNU_SELECTED="বর্তমানে gnu সংস্করণ ইনস্টল করা হচ্ছে..."
+        MSG_MUSL_SELECTED="বর্তমানে musl সংস্করণ ইনস্টল করা হচ্ছে..."
+        MSG_FALLBACK_MUSL="gnu সংস্করণ পাওয়া যাচ্ছে না, musl সংস্করণে ফিরে যাওয়া হচ্ছে..."
+        MSG_BOTH_FAILED="ত্রুটি: gnu এবং musl উভয় সংস্করণই বর্তমান সিস্টেমে ইনস্টল করা যায় না।\nসম্ভাব্য কারণ: ডিস্ট্রিবিউশন/আর্কিটেকচার এখনও সমর্থিত নয়, অথবা এই প্ল্যাটফর্মের জন্য musl সংস্করণ কম্পাইল করা হয়নি।\nঅনুগ্রহ করে উপরে প্রিন্ট করা সিস্টেম তথ্য সহ issue খুলুন, যাতে ডেভেলপাররা অনুপস্থিত প্যাকেজ যোগ করতে পারেন।"
         ;;
     sk_SK)
         MSG_INSTALL="Inštalácia safe-rm do"
@@ -917,9 +1227,1166 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Rozbaľovanie..."
         MSG_UNSUPPORTED="Nepodporované:"
         MSG_NEED_TOOLS="Chyba: chýbajú požadované nástroje."
-        MSG_MANUAL_INSTALL="Nainštalujte ručne nasledujúce nástroje a skúste znova:"
+        MSG_CURRENT_DISTRO="Aktuálna distribúcia"
+        MSG_MISSING="Chýba"
+        MSG_RUN_INSTALL="Spustite nasledujúci príkaz na inštaláciu:"
+        MSG_UNKNOWN_OS="Aktuálnu distribúciu nebolo možné rozpoznať, nainštalujte chýbajúce nástroje manuálne"
+        MSG_AFTER_INSTALL="Po inštalácii znova spustite tento skript."
         MSG_DOWNLOAD_FAILED="Sťahovanie zlyhalo"
         MSG_EXTRACT_FAILED="Rozbalenie zlyhalo"
+        MSG_TRY_GNU="Pripravuje sa verzia gnu..."
+        MSG_TRY_MUSL="Pripravuje sa verzia musl..."
+        MSG_GNU_SELECTED="Práve sa inštaluje verzia gnu..."
+        MSG_MUSL_SELECTED="Práve sa inštaluje verzia musl..."
+        MSG_FALLBACK_MUSL="Verzia gnu nie je k dispozícii, návrat k verzii musl..."
+        MSG_BOTH_FAILED="Chyba: ani verziu gnu, ani verziu musl nie je možné nainštalovať v aktuálnom systéme.\nMožné príčiny: distribúcia/architektúra zatiaľ nie je podporovaná, alebo pre túto platformu nie je skompilovaná verzia musl.\nVytvorte issue s vyššie uvedenými systémovými informáciami, aby vývojári mohli pridať chýbajúci balík."
+        ;;
+    bg_BG)
+        MSG_INSTALL="Инсталиране на safe-rm в"
+        MSG_DONE="Инсталацията е завършена."
+        MSG_UNINSTALL="Деинсталиране на safe-rm..."
+        MSG_UNINSTALLED="Деинсталацията е завършена."
+        MSG_RELOGIN="Моля, влезте отново или изпълнете:"
+        MSG_TEST="Тест:"
+        MSG_NOT_ROOT="Грешка: необходими са root права. Изпълнете със sudo."
+        MSG_NO_FILE="Грешка: липсва в текущата директория"
+        MSG_ALREADY="safe-rm вече е инсталиран"
+        MSG_UNINSTALL_HINT="За деинсталиране изпълнете:"
+        MSG_PATH_SETUP="Настройка на PATH:"
+        MSG_PATH_STANDARD="Стандарт:"
+        MSG_PATH_OVERRIDE="Ако shell презаписва PATH, добавете към конфигурацията на shell:"
+        MSG_UPDATE_TITLE="Актуализиране на списъка със защита:"
+        MSG_UPDATE_CONF="актуализиране на $SYSCONFDIR/safe-rm.conf"
+        MSG_UPDATE_DESC="Забележка: пътищата за защита по подразбиране се различават според дистрибуцията.\nВключеният safe-rm.conf е обща стойност по подразбиране и\nможе да не съвпада напълно с вашата система.\nПрепоръчително е да изпълните update-safe-rm, за да генерирате\nнай-подходящия списък със защита за текущата система."
+        MSG_HOMEPAGE="Начална страница на проекта:"
+        MSG_INSTALLED_FILES="Инсталирани файлове:"
+        MSG_DOWNLOADING="Изтегляне..."
+        MSG_EXTRACTING="Разархивиране..."
+        MSG_UNSUPPORTED="Неподдържано:"
+        MSG_NEED_TOOLS="Грешка: липсват необходими инструменти."
+        MSG_CURRENT_DISTRO="Текуща дистрибуция"
+        MSG_MISSING="Липсва"
+        MSG_RUN_INSTALL="Моля, изпълнете следната команда за инсталиране:"
+        MSG_UNKNOWN_OS="Текущата дистрибуция не е разпозната, моля, инсталирайте липсващите инструменти ръчно"
+        MSG_AFTER_INSTALL="След инсталацията, моля, стартирайте отново този скрипт."
+        MSG_DOWNLOAD_FAILED="Изтеглянето не бе успешно"
+        MSG_EXTRACT_FAILED="Разархивирането не бе успешно"
+        MSG_TRY_GNU="Подготовка на версията gnu..."
+        MSG_TRY_MUSL="Подготовка на версията musl..."
+        MSG_GNU_SELECTED="В момента се инсталира версията gnu..."
+        MSG_MUSL_SELECTED="В момента се инсталира версията musl..."
+        MSG_FALLBACK_MUSL="Версията gnu не е налична, връщане към версията musl..."
+        MSG_BOTH_FAILED="Грешка: нито версията gnu, нито musl може да бъде инсталирана на текущата система.\nВъзможни причини: дистрибуцията/архитектурата все още не се поддържа или версията musl не е компилирана за тази платформа.\nМоля, създайте issue с прикачена системна информация, отпечатана по-горе, за да може разработчиците да добавят липсващия пакет."
+        ;;
+    sr_RS)
+        MSG_INSTALL="Инсталирање safe-rm у"
+        MSG_DONE="Инсталација завршена."
+        MSG_UNINSTALL="Деинсталирање safe-rm..."
+        MSG_UNINSTALLED="Деинсталација завршена."
+        MSG_RELOGIN="Молимо пријавите се поново или покрените:"
+        MSG_TEST="Тест:"
+        MSG_NOT_ROOT="Грешка: потребан је root. Покрените са sudo."
+        MSG_NO_FILE="Грешка: недостаје у тренутном директоријуму"
+        MSG_ALREADY="safe-rm је већ инсталиран"
+        MSG_UNINSTALL_HINT="За деинсталацију покрените:"
+        MSG_PATH_SETUP="Подешавање PATH:"
+        MSG_PATH_STANDARD="Стандард:"
+        MSG_PATH_OVERRIDE="Ако shell замењује PATH, додајте у конфигурацију shell-а:"
+        MSG_UPDATE_TITLE="Ажурирај листу заштите:"
+        MSG_UPDATE_CONF="ажурирај $SYSCONFDIR/safe-rm.conf"
+        MSG_UPDATE_DESC="Напомена: подразумеване заштићене путање се разликују између дистрибуција.\nПриложени safe-rm.conf је општа подразумевана вредност и\nможда не одговара потпуно вашем систему.\nПрепоручује се покретање update-safe-rm ради генерисања\nнајприкладније листе заштите за тренутни систем."
+        MSG_HOMEPAGE="Почетна страница пројекта:"
+        MSG_INSTALLED_FILES="Инсталирани фајлови:"
+        MSG_DOWNLOADING="Преузимање..."
+        MSG_EXTRACTING="Распакивање..."
+        MSG_UNSUPPORTED="Није подржано:"
+        MSG_NEED_TOOLS="Грешка: недостају потребни алати."
+        MSG_CURRENT_DISTRO="Тренутна дистрибуција"
+        MSG_MISSING="Недостаје"
+        MSG_RUN_INSTALL="Молимо покрените следећу команду за инсталацију:"
+        MSG_UNKNOWN_OS="Тренутна дистрибуција није препозната, молимо ручно инсталирајте недостајуће алате"
+        MSG_AFTER_INSTALL="Након инсталације, молимо поново покрените ову скрипту."
+        MSG_DOWNLOAD_FAILED="Преузимање није успело"
+        MSG_EXTRACT_FAILED="Распакивање није успело"
+        MSG_TRY_GNU="Припрема gnu верзије..."
+        MSG_TRY_MUSL="Припрема musl верзије..."
+        MSG_GNU_SELECTED="Тренутно се инсталира gnu верзија..."
+        MSG_MUSL_SELECTED="Тренутно се инсталира musl верзија..."
+        MSG_FALLBACK_MUSL="gnu верзија није доступна, враћање на musl верзију..."
+        MSG_BOTH_FAILED="Грешка: ни gnu ни musl верзија не могу се инсталирати на тренутном систему.\nМогући разлози: дистрибуција/архитектура још није подржана или musl верзија није компајлирана за ову платформу.\nМолимо отворите issue са горе приказаним системским информацијама како би програмери могли да додају пакет који недостаје."
+        ;;
+    hr_HR)
+        MSG_INSTALL="Instaliranje safe-rm u"
+        MSG_DONE="Instalacija dovršena."
+        MSG_UNINSTALL="Deinstaliranje safe-rm..."
+        MSG_UNINSTALLED="Deinstalacija dovršena."
+        MSG_RELOGIN="Ponovno se prijavite ili pokrenite:"
+        MSG_TEST="Test:"
+        MSG_NOT_ROOT="Greška: potreban je root. Pokrenite sa sudo."
+        MSG_NO_FILE="Greška: nedostaje u trenutnom direktoriju"
+        MSG_ALREADY="safe-rm je već instaliran"
+        MSG_UNINSTALL_HINT="Za deinstalaciju pokrenite:"
+        MSG_PATH_SETUP="Postavljanje PATH-a:"
+        MSG_PATH_STANDARD="Standardno:"
+        MSG_PATH_OVERRIDE="Ako shell prepisuje PATH, dodajte u konfiguraciju shell-a:"
+        MSG_UPDATE_TITLE="Ažuriraj popis zaštite:"
+        MSG_UPDATE_CONF="ažuriraj $SYSCONFDIR/safe-rm.conf"
+        MSG_UPDATE_DESC="Napomena: zadane zaštićene staze razlikuju se među distribucijama.\nPriloženi safe-rm.conf je općenita zadana vrijednost i\nmožda ne odgovara u potpunosti vašem sustavu.\nPreporučuje se pokretanje update-safe-rm za generiranje\nnajprikladnijeg popisa zaštite za trenutni sustav."
+        MSG_HOMEPAGE="Početna stranica projekta:"
+        MSG_INSTALLED_FILES="Instalirane datoteke:"
+        MSG_DOWNLOADING="Preuzimanje..."
+        MSG_EXTRACTING="Raspakiravanje..."
+        MSG_UNSUPPORTED="Nije podržano:"
+        MSG_NEED_TOOLS="Greška: nedostaju potrebni alati."
+        MSG_CURRENT_DISTRO="Trenutna distribucija"
+        MSG_MISSING="Nedostaje"
+        MSG_RUN_INSTALL="Pokrenite sljedeću naredbu za instalaciju:"
+        MSG_UNKNOWN_OS="Trenutna distribucija nije prepoznata, molimo ručno instalirajte alate koji nedostaju"
+        MSG_AFTER_INSTALL="Nakon instalacije ponovno pokrenite ovu skriptu."
+        MSG_DOWNLOAD_FAILED="Preuzimanje nije uspjelo"
+        MSG_EXTRACT_FAILED="Raspakiravanje nije uspjelo"
+        MSG_TRY_GNU="Priprema gnu verzije..."
+        MSG_TRY_MUSL="Priprema musl verzije..."
+        MSG_GNU_SELECTED="Trenutačno se instalira gnu verzija..."
+        MSG_MUSL_SELECTED="Trenutačno se instalira musl verzija..."
+        MSG_FALLBACK_MUSL="gnu verzija nije dostupna, vraćanje na musl verziju..."
+        MSG_BOTH_FAILED="Greška: ni gnu ni musl verzija ne mogu se instalirati na trenutnom sustavu.\nMogući razlozi: distribucija/arhitektura još nije podržana ili musl verzija nije kompilirana za ovu platformu.\nOtvorite issue s gore ispisanim sistemskim informacijama kako bi programeri mogli dodati paket koji nedostaje."
+        ;;
+    sl_SI)
+        MSG_INSTALL="Nameščanje safe-rm v"
+        MSG_DONE="Namestitev končana."
+        MSG_UNINSTALL="Odstranjevanje safe-rm..."
+        MSG_UNINSTALLED="Odstranitev končana."
+        MSG_RELOGIN="Ponovno se prijavite ali zaženite:"
+        MSG_TEST="Test:"
+        MSG_NOT_ROOT="Napaka: potreben je root. Zaženite s sudo."
+        MSG_NO_FILE="Napaka: manjka v trenutni mapi"
+        MSG_ALREADY="safe-rm je že nameščen"
+        MSG_UNINSTALL_HINT="Za odstranitev zaženite:"
+        MSG_PATH_SETUP="Nastavitev PATH:"
+        MSG_PATH_STANDARD="Standardno:"
+        MSG_PATH_OVERRIDE="Če lupina prepiše PATH, dodajte v konfiguracijo lupine:"
+        MSG_UPDATE_TITLE="Posodobi seznam zaščite:"
+        MSG_UPDATE_CONF="posodobi $SYSCONFDIR/safe-rm.conf"
+        MSG_UPDATE_DESC="Opomba: privzete zaščitene poti se razlikujejo med distribucijami.\nPriloženi safe-rm.conf je splošna privzeta vrednost in\nmorda ne ustreza popolnoma vašemu sistemu.\nPriporočamo zagon update-safe-rm za ustvarjanje\nnajprimernejšega seznama zaščite za trenutni sistem."
+        MSG_HOMEPAGE="Domača stran projekta:"
+        MSG_INSTALLED_FILES="Nameščene datoteke:"
+        MSG_DOWNLOADING="Prenašanje..."
+        MSG_EXTRACTING="Razširjanje..."
+        MSG_UNSUPPORTED="Ni podprto:"
+        MSG_NEED_TOOLS="Napaka: manjkajo potrebna orodja."
+        MSG_CURRENT_DISTRO="Trenutna distribucija"
+        MSG_MISSING="Manjka"
+        MSG_RUN_INSTALL="Za namestitev zaženite naslednji ukaz:"
+        MSG_UNKNOWN_OS="Trenutne distribucije ni bilo mogoče prepoznati, prosimo, ročno namestite manjkajoča orodja"
+        MSG_AFTER_INSTALL="Po namestitvi znova zaženite to skripto."
+        MSG_DOWNLOAD_FAILED="Prenos ni uspel"
+        MSG_EXTRACT_FAILED="Razširjanje ni uspelo"
+        MSG_TRY_GNU="Priprava različice gnu..."
+        MSG_TRY_MUSL="Priprava različice musl..."
+        MSG_GNU_SELECTED="Trenutno se namešča različica gnu..."
+        MSG_MUSL_SELECTED="Trenutno se namešča različica musl..."
+        MSG_FALLBACK_MUSL="Različica gnu ni na voljo, vračanje na različico musl..."
+        MSG_BOTH_FAILED="Napaka: niti različice gnu niti musl ni mogoče namestiti v trenutnem sistemu.\nMožni razlogi: distribucija/arhitektura še ni podprta ali različica musl ni prevedena za to platformo.\nOdprite issue s zgoraj izpisanimi sistemskimi informacijami, da lahko razvijalci dodajo manjkajoči paket."
+        ;;
+    lt_LT)
+        MSG_INSTALL="Diegiama safe-rm į"
+        MSG_DONE="Diegimas baigtas."
+        MSG_UNINSTALL="Šalinama safe-rm..."
+        MSG_UNINSTALLED="Šalinimas baigtas."
+        MSG_RELOGIN="Prisijunkite iš naujo arba paleiskite:"
+        MSG_TEST="Testas:"
+        MSG_NOT_ROOT="Klaida: reikia root. Paleiskite su sudo."
+        MSG_NO_FILE="Klaida: trūksta dabartiniame kataloge"
+        MSG_ALREADY="safe-rm jau įdiegta"
+        MSG_UNINSTALL_HINT="Norėdami pašalinti, paleiskite:"
+        MSG_PATH_SETUP="PATH nustatymas:"
+        MSG_PATH_STANDARD="Standartinis:"
+        MSG_PATH_OVERRIDE="Jei shell perrašo PATH, pridėkite prie shell konfigūracijos:"
+        MSG_UPDATE_TITLE="Atnaujinti apsaugos sąrašą:"
+        MSG_UPDATE_CONF="atnaujinti $SYSCONFDIR/safe-rm.conf"
+        MSG_UPDATE_DESC="Pastaba: numatytieji apsaugoti keliai skiriasi priklausomai nuo distribucijos.\nPridėtas safe-rm.conf yra bendra numatytoji reikšmė ir\ngali visiškai neatitikti jūsų sistemos.\nRekomenduojama paleisti update-safe-rm, kad būtų sukurtas\ntinkamiausias apsaugos sąrašas dabartinei sistemai."
+        MSG_HOMEPAGE="Projekto pagrindinis puslapis:"
+        MSG_INSTALLED_FILES="Įdiegti failai:"
+        MSG_DOWNLOADING="Atsiunčiama..."
+        MSG_EXTRACTING="Išskleidžiama..."
+        MSG_UNSUPPORTED="Nepalaikoma:"
+        MSG_NEED_TOOLS="Klaida: trūksta reikalingų įrankių."
+        MSG_CURRENT_DISTRO="Dabartinė distribucija"
+        MSG_MISSING="Trūksta"
+        MSG_RUN_INSTALL="Norėdami įdiegti, paleiskite šią komandą:"
+        MSG_UNKNOWN_OS="Dabartinės distribucijos atpažinti nepavyko, įdiekite trūkstamus įrankius rankiniu būdu"
+        MSG_AFTER_INSTALL="Po diegimo paleiskite šį scenarijų iš naujo."
+        MSG_DOWNLOAD_FAILED="Atsiuntimas nepavyko"
+        MSG_EXTRACT_FAILED="Išskleidimas nepavyko"
+        MSG_TRY_GNU="Ruošiama gnu versija..."
+        MSG_TRY_MUSL="Ruošiama musl versija..."
+        MSG_GNU_SELECTED="Šiuo metu diegiama gnu versija..."
+        MSG_MUSL_SELECTED="Šiuo metu diegiama musl versija..."
+        MSG_FALLBACK_MUSL="gnu versija neprieinama, grįžtama prie musl versijos..."
+        MSG_BOTH_FAILED="Klaida: nei gnu, nei musl versijos negali būti įdiegtos dabartinėje sistemoje.\nGalimos priežastys: distribucija/architektūra dar nepalaikoma arba musl versija nesukompiliuota šiai platformai.\nAtidarykite issue su aukščiau išspausdinta sistemos informacija, kad kūrėjai galėtų pridėti trūkstamą paketą."
+        ;;
+    lv_LV)
+        MSG_INSTALL="Instalē safe-rm uz"
+        MSG_DONE="Instalēšana pabeigta."
+        MSG_UNINSTALL="Atinstalē safe-rm..."
+        MSG_UNINSTALLED="Atinstalēšana pabeigta."
+        MSG_RELOGIN="Lūdzu, piesakieties vēlreiz vai palaidiet:"
+        MSG_TEST="Tests:"
+        MSG_NOT_ROOT="Kļūda: nepieciešams root. Palaidiet ar sudo."
+        MSG_NO_FILE="Kļūda: trūkst pašreizējā direktorijā"
+        MSG_ALREADY="safe-rm jau ir instalēts"
+        MSG_UNINSTALL_HINT="Lai atinstalētu, palaidiet:"
+        MSG_PATH_SETUP="PATH iestatīšana:"
+        MSG_PATH_STANDARD="Standarta:"
+        MSG_PATH_OVERRIDE="Ja shell pārraksta PATH, pievienojiet shell konfigurācijai:"
+        MSG_UPDATE_TITLE="Atjaunināt aizsardzības sarakstu:"
+        MSG_UPDATE_CONF="atjaunināt $SYSCONFDIR/safe-rm.conf"
+        MSG_UPDATE_DESC="Piezīme: noklusējuma aizsargātie ceļi atšķiras starp distribūcijām.\nPievienotais safe-rm.conf ir vispārīga noklusējuma vērtība un\nvar pilnībā neatbilst jūsu sistēmai.\nIeteicams palaist update-safe-rm, lai ģenerētu\npiemērotāko aizsardzības sarakstu pašreizējai sistēmai."
+        MSG_HOMEPAGE="Projekta mājaslapa:"
+        MSG_INSTALLED_FILES="Instalētās datnes:"
+        MSG_DOWNLOADING="Lejupielāde..."
+        MSG_EXTRACTING="Izpakot..."
+        MSG_UNSUPPORTED="Nav atbalstīts:"
+        MSG_NEED_TOOLS="Kļūda: trūkst nepieciešamo rīku."
+        MSG_CURRENT_DISTRO="Pašreizējā distribūcija"
+        MSG_MISSING="Trūkst"
+        MSG_RUN_INSTALL="Lūdzu, palaidiet šo komandu, lai instalētu:"
+        MSG_UNKNOWN_OS="Pašreizējo distribūciju nevarēja atpazīt, lūdzu, instalējiet trūkstošos rīkus manuāli"
+        MSG_AFTER_INSTALL="Pēc instalēšanas, lūdzu, palaidiet šo skriptu vēlreiz."
+        MSG_DOWNLOAD_FAILED="Lejupielāde neizdevās"
+        MSG_EXTRACT_FAILED="Izpakot neizdevās"
+        MSG_TRY_GNU="Sagatavo gnu versiju..."
+        MSG_TRY_MUSL="Sagatavo musl versiju..."
+        MSG_GNU_SELECTED="Pašlaik tiek instalēta gnu versija..."
+        MSG_MUSL_SELECTED="Pašlaik tiek instalēta musl versija..."
+        MSG_FALLBACK_MUSL="gnu versija nav pieejama, atgriežas pie musl versijas..."
+        MSG_BOTH_FAILED="Kļūda: ne gnu, ne musl versiju nevar instalēt pašreizējā sistēmā.\nIespējamie iemesli: distribūcija/arhitektūra vēl netiek atbalstīta vai musl versija nav kompilēta šai platformai.\nLūdzu, atveriet issue ar iepriekš izdrukāto sistēmas informāciju, lai izstrādātāji varētu pievienot trūkstošo pakotni."
+        ;;
+    et_EE)
+        MSG_INSTALL="Paigaldan safe-rm asukohta"
+        MSG_DONE="Paigaldamine lõpetatud."
+        MSG_UNINSTALL="Eemaldan safe-rm..."
+        MSG_UNINSTALLED="Eemaldamine lõpetatud."
+        MSG_RELOGIN="Palun logige uuesti sisse või käivitage:"
+        MSG_TEST="Test:"
+        MSG_NOT_ROOT="Viga: vajalik on root. Käivitage sudoga."
+        MSG_NO_FILE="Viga: puudub praeguses kataloogis"
+        MSG_ALREADY="safe-rm on juba paigaldatud"
+        MSG_UNINSTALL_HINT="Eemaldamiseks käivitage:"
+        MSG_PATH_SETUP="PATH seadistamine:"
+        MSG_PATH_STANDARD="Standardne:"
+        MSG_PATH_OVERRIDE="Kui shell kirjutab PATHi üle, lisage shelli konfiguratsiooni:"
+        MSG_UPDATE_TITLE="Värskenda kaitse nimekirja:"
+        MSG_UPDATE_CONF="värskenda $SYSCONFDIR/safe-rm.conf"
+        MSG_UPDATE_DESC="Märkus: vaikimisi kaitstud teed erinevad distributsiooniti.\nKaasas olev safe-rm.conf on üldine vaikeväärtus ja\nei pruugi teie süsteemiga täielikult ühtida.\nSoovitatav on käivitada update-safe-rm, et luua\npraegusele süsteemile sobivaim kaitse nimekiri."
+        MSG_HOMEPAGE="Projekti koduleht:"
+        MSG_INSTALLED_FILES="Paigaldatud failid:"
+        MSG_DOWNLOADING="Allalaadimine..."
+        MSG_EXTRACTING="Lahtipakkimine..."
+        MSG_UNSUPPORTED="Ei toetata:"
+        MSG_NEED_TOOLS="Viga: vajalikud tööriistad puuduvad."
+        MSG_CURRENT_DISTRO="Praegune distributsioon"
+        MSG_MISSING="Puudub"
+        MSG_RUN_INSTALL="Paigaldamiseks käivitage järgmine käsk:"
+        MSG_UNKNOWN_OS="Praegust distributsiooni ei tuvastatud, palun paigaldage puuduvad tööriistad käsitsi"
+        MSG_AFTER_INSTALL="Pärast paigaldamist käivitage see skript uuesti."
+        MSG_DOWNLOAD_FAILED="Allalaadimine ebaõnnestus"
+        MSG_EXTRACT_FAILED="Lahtipakkimine ebaõnnestus"
+        MSG_TRY_GNU="Valmistun gnu versiooniks..."
+        MSG_TRY_MUSL="Valmistun musl versiooniks..."
+        MSG_GNU_SELECTED="Praegu paigaldatakse gnu versiooni..."
+        MSG_MUSL_SELECTED="Praegu paigaldatakse musl versiooni..."
+        MSG_FALLBACK_MUSL="gnu versioon pole saadaval, lülitun tagasi musl versioonile..."
+        MSG_BOTH_FAILED="Viga: ei gnu ega musl versiooni ei saa praeguses süsteemis paigaldada.\nVõimalikud põhjused: distributsiooni/arhitektuuri ei toetata veel või musl versiooni pole sellele platvormile kompileeritud.\nPalun avage issue koos ülal trükitud süsteemiteabega, et arendajad saaksid puuduva paketi lisada."
+        ;;
+    ca_ES)
+        MSG_INSTALL="Instal·lant safe-rm a"
+        MSG_DONE="Instal·lació completada."
+        MSG_UNINSTALL="Desinstal·lant safe-rm..."
+        MSG_UNINSTALLED="Desinstal·lació completada."
+        MSG_RELOGIN="Torneu a iniciar sessió o executeu:"
+        MSG_TEST="Prova:"
+        MSG_NOT_ROOT="Error: cal root. Executeu amb sudo."
+        MSG_NO_FILE="Error: falta al directori actual"
+        MSG_ALREADY="safe-rm ja està instal·lat"
+        MSG_UNINSTALL_HINT="Per desinstal·lar, executeu:"
+        MSG_PATH_SETUP="Configuració de PATH:"
+        MSG_PATH_STANDARD="Estàndard:"
+        MSG_PATH_OVERRIDE="Si l'intèrpret sobreescriu PATH, afegiu a la configuració de l'intèrpret:"
+        MSG_UPDATE_TITLE="Actualitza la llista de protecció:"
+        MSG_UPDATE_CONF="actualitza $SYSCONFDIR/safe-rm.conf"
+        MSG_UPDATE_DESC="Nota: els camins protegits per defecte varien entre distribucions.\nEl safe-rm.conf inclòs és un valor predeterminat genèric i\npot no coincidir completament amb el vostre sistema.\nEs recomana executar update-safe-rm per generar\nla llista de protecció més adequada per al sistema actual."
+        MSG_HOMEPAGE="Pàgina del projecte:"
+        MSG_INSTALLED_FILES="Fitxers instal·lats:"
+        MSG_DOWNLOADING="S'està baixant..."
+        MSG_EXTRACTING="S'està extraient..."
+        MSG_UNSUPPORTED="No admès:"
+        MSG_NEED_TOOLS="Error: falten eines necessàries."
+        MSG_CURRENT_DISTRO="Distribució actual"
+        MSG_MISSING="Falta"
+        MSG_RUN_INSTALL="Executeu la comanda següent per instal·lar:"
+        MSG_UNKNOWN_OS="No s'ha pogut reconèixer la distribució actual, instal·leu manualment les eines que falten"
+        MSG_AFTER_INSTALL="Després de la instal·lació, torneu a executar aquest script."
+        MSG_DOWNLOAD_FAILED="Baixada fallida"
+        MSG_EXTRACT_FAILED="Extracció fallida"
+        MSG_TRY_GNU="Preparant la versió gnu..."
+        MSG_TRY_MUSL="Preparant la versió musl..."
+        MSG_GNU_SELECTED="S'està instal·lant la versió gnu..."
+        MSG_MUSL_SELECTED="S'està instal·lant la versió musl..."
+        MSG_FALLBACK_MUSL="La versió gnu no està disponible, es torna a la versió musl..."
+        MSG_BOTH_FAILED="Error: ni la versió gnu ni la musl es poden instal·lar al sistema actual.\nPossibles causes: la distribució/arquitectura encara no és compatible o la versió musl no s'ha compilat per a aquesta plataforma.\nObriu un issue adjuntant la informació del sistema impresa a dalt per tal que els desenvolupadors puguin afegir el paquet que falta."
+        ;;
+    is_IS)
+        MSG_INSTALL="Setur upp safe-rm í"
+        MSG_DONE="Uppsetningu lokið."
+        MSG_UNINSTALL="Fjarlægi safe-rm..."
+        MSG_UNINSTALLED="Fjarlægingu lokið."
+        MSG_RELOGIN="Skráðu þig inn aftur eða keyrðu:"
+        MSG_TEST="Próf:"
+        MSG_NOT_ROOT="Villa: root er nauðsynlegt. Keyrðu með sudo."
+        MSG_NO_FILE="Villa: vantar í núverandi möppu"
+        MSG_ALREADY="safe-rm er þegar uppsett"
+        MSG_UNINSTALL_HINT="Til að fjarlægja, keyrðu:"
+        MSG_PATH_SETUP="PATH uppsetning:"
+        MSG_PATH_STANDARD="Staðlað:"
+        MSG_PATH_OVERRIDE="Ef skel yfirskrifar PATH, bættu við skelstillingar:"
+        MSG_UPDATE_TITLE="Uppfæra verndarlista:"
+        MSG_UPDATE_CONF="uppfæra $SYSCONFDIR/safe-rm.conf"
+        MSG_UPDATE_DESC="Athugasemd: sjálfgefnir verndaðir slóðir eru mismunandi eftir dreifingum.\nMeðfylgjandi safe-rm.conf er almenn sjálfgefin gildi og\ngæti ekki passað fullkomlega við kerfið þitt.\nMælt er með að keyra update-safe-rm til að búa til\nhentugasta verndarlista fyrir núverandi kerfi."
+        MSG_HOMEPAGE="Heimasíða verkefnisins:"
+        MSG_INSTALLED_FILES="Uppsettar skrár:"
+        MSG_DOWNLOADING="Hleður niður..."
+        MSG_EXTRACTING="Afþjappar..."
+        MSG_UNSUPPORTED="Ekki stutt:"
+        MSG_NEED_TOOLS="Villa: nauðsynleg verkfæri vantar."
+        MSG_CURRENT_DISTRO="Núverandi dreifing"
+        MSG_MISSING="Vantar"
+        MSG_RUN_INSTALL="Keyrðu eftirfarandi skipun til að setja upp:"
+        MSG_UNKNOWN_OS="Núverandi dreifing fannst ekki, vinsamlegast settu upp vantar verkfæri handvirkt"
+        MSG_AFTER_INSTALL="Eftir uppsetningu skaltu keyra þetta skrifta aftur."
+        MSG_DOWNLOAD_FAILED="Niðurhal mistókst"
+        MSG_EXTRACT_FAILED="Afþjöppun mistókst"
+        MSG_TRY_GNU="Undirbý gnu útgáfu..."
+        MSG_TRY_MUSL="Undirbý musl útgáfu..."
+        MSG_GNU_SELECTED="Verið er að setja upp gnu útgáfu..."
+        MSG_MUSL_SELECTED="Verið er að setja upp musl útgáfu..."
+        MSG_FALLBACK_MUSL="gnu útgáfa er ekki í boði, fer til baka í musl útgáfu..."
+        MSG_BOTH_FAILED="Villa: hvorki gnu né musl útgáfan er hægt að setja upp á núverandi kerfi.\nMögulegar ástæður: dreifingin/arkitektúrinn er ekki studdur ennþá eða musl útgáfan er ekki þýdd fyrir þennan vettvang.\nOpnaðu issue með kerfisupplýsingunum sem prentaðar eru hér að ofan svo hönnuðir geti bætt við pakkanum sem vantar."
+        ;;
+    sq_AL)
+        MSG_INSTALL="Po instaloj safe-rm në"
+        MSG_DONE="Instalimi përfundoi."
+        MSG_UNINSTALL="Po çinstaloj safe-rm..."
+        MSG_UNINSTALLED="Çinstalimi përfundoi."
+        MSG_RELOGIN="Ju lutem rihyni ose ekzekutoni:"
+        MSG_TEST="Test:"
+        MSG_NOT_ROOT="Gabim: kërkohet root. Ekzekutoni me sudo."
+        MSG_NO_FILE="Gabim: mungon në direktorinë aktuale"
+        MSG_ALREADY="safe-rm është instaluar tashmë"
+        MSG_UNINSTALL_HINT="Për çinstalim, ekzekutoni:"
+        MSG_PATH_SETUP="Cilësimi i PATH:"
+        MSG_PATH_STANDARD="Standard:"
+        MSG_PATH_OVERRIDE="Nëse shell mbishkruan PATH, shtoni në konfigurimin e shell:"
+        MSG_UPDATE_TITLE="Përditëso listën e mbrojtjes:"
+        MSG_UPDATE_CONF="përditëso $SYSCONFDIR/safe-rm.conf"
+        MSG_UPDATE_DESC="Shënim: shtigjet e mbrojtura të parazgjedhura ndryshojnë mes shpërndarjeve.\nsafe-rm.conf i bashkangjitur është vlerë e përgjithshme e parazgjedhur dhe\nmund të mos përputhet plotësisht me sistemin tuaj.\nRekomandohet ekzekutimi i update-safe-rm për të gjeneruar\nlistën më të përshtatshme të mbrojtjes për sistemin aktual."
+        MSG_HOMEPAGE="Faqja e projektit:"
+        MSG_INSTALLED_FILES="Skedarë të instaluar:"
+        MSG_DOWNLOADING="Po shkarkohet..."
+        MSG_EXTRACTING="Po zbërthehet..."
+        MSG_UNSUPPORTED="Nuk mbështetet:"
+        MSG_NEED_TOOLS="Gabim: mungojnë mjetet e nevojshme."
+        MSG_CURRENT_DISTRO="Shpërndarja aktuale"
+        MSG_MISSING="Mungon"
+        MSG_RUN_INSTALL="Ju lutem ekzekutoni komandën e mëposhtme për instalim:"
+        MSG_UNKNOWN_OS="Shpërndarja aktuale nuk u njoh, ju lutem instaloni manualisht mjetet që mungojnë"
+        MSG_AFTER_INSTALL="Pas instalimit, ju lutem ekzekutoni përsëri këtë skript."
+        MSG_DOWNLOAD_FAILED="Shkarkimi dështoi"
+        MSG_EXTRACT_FAILED="Zbërthimi dështoi"
+        MSG_TRY_GNU="Po përgatit versionin gnu..."
+        MSG_TRY_MUSL="Po përgatit versionin musl..."
+        MSG_GNU_SELECTED="Po instalohet versioni gnu..."
+        MSG_MUSL_SELECTED="Po instalohet versioni musl..."
+        MSG_FALLBACK_MUSL="Versioni gnu nuk është i disponueshëm, po kthehem në versionin musl..."
+        MSG_BOTH_FAILED="Gabim: as versioni gnu dhe as musl nuk mund të instalohen në sistemin aktual.\nShkaqe të mundshme: shpërndarja/arkitektura nuk mbështetet ende ose versioni musl nuk është kompiluar për këtë platformë.\nJu lutem hapni një issue me informacionin e sistemit të printuar më sipër në mënyrë që zhvilluesit të shtojnë paketën që mungon."
+        ;;
+    mk_MK)
+        MSG_INSTALL="Инсталирање на safe-rm во"
+        MSG_DONE="Инсталацијата е завршена."
+        MSG_UNINSTALL="Деинсталирање на safe-rm..."
+        MSG_UNINSTALLED="Деинсталацијата е завршена."
+        MSG_RELOGIN="Ве молиме најавете се повторно или извршете:"
+        MSG_TEST="Тест:"
+        MSG_NOT_ROOT="Грешка: потребен е root. Извршете со sudo."
+        MSG_NO_FILE="Грешка: недостасува во тековниот директориум"
+        MSG_ALREADY="safe-rm е веќе инсталиран"
+        MSG_UNINSTALL_HINT="За деинсталирање, извршете:"
+        MSG_PATH_SETUP="Поставување на PATH:"
+        MSG_PATH_STANDARD="Стандард:"
+        MSG_PATH_OVERRIDE="Ако shell го презапишува PATH, додајте во конфигурацијата на shell:"
+        MSG_UPDATE_TITLE="Ажурирај ја листата за заштита:"
+        MSG_UPDATE_CONF="ажурирај $SYSCONFDIR/safe-rm.conf"
+        MSG_UPDATE_DESC="Забелешка: стандардните заштитени патеки се разликуваат помеѓу дистрибуциите.\nПриложениот safe-rm.conf е општа стандардна вредност и\nможе целосно да не одговара на вашиот систем.\nСе препорачува извршување на update-safe-rm за да се генерира\nнајсоодветната листа за заштита за тековниот систем."
+        MSG_HOMEPAGE="Почетна страница на проектот:"
+        MSG_INSTALLED_FILES="Инсталирани датотеки:"
+        MSG_DOWNLOADING="Се презема..."
+        MSG_EXTRACTING="Се распакува..."
+        MSG_UNSUPPORTED="Не е поддржано:"
+        MSG_NEED_TOOLS="Грешка: недостасуваат потребните алатки."
+        MSG_CURRENT_DISTRO="Тековна дистрибуција"
+        MSG_MISSING="Недостасува"
+        MSG_RUN_INSTALL="Ве молиме извршете ја следната команда за инсталација:"
+        MSG_UNKNOWN_OS="Тековната дистрибуција не е препознаена, ве молиме рачно инсталирајте ги алатките што недостасуваат"
+        MSG_AFTER_INSTALL="По инсталацијата, ве молиме повторно извршете ја оваа скрипта."
+        MSG_DOWNLOAD_FAILED="Преземањето не успеа"
+        MSG_EXTRACT_FAILED="Распакувањето не успеа"
+        MSG_TRY_GNU="Подготовка на верзијата gnu..."
+        MSG_TRY_MUSL="Подготовка на верзијата musl..."
+        MSG_GNU_SELECTED="Во моментов се инсталира верзијата gnu..."
+        MSG_MUSL_SELECTED="Во моментов се инсталира верзијата musl..."
+        MSG_FALLBACK_MUSL="Верзијата gnu не е достапна, се враќам на верзијата musl..."
+        MSG_BOTH_FAILED="Грешка: ниту верзијата gnu, ниту musl не можат да се инсталираат на тековниот систем.\nМожни причини: дистрибуцијата/архитектурата сè уште не е поддржана или верзијата musl не е компајлирана за оваа платформа.\nОтворете issue со системските информации прикажани погоре за да можат развивачите да го додадат пакетот што недостасува."
+        ;;
+    be_BY)
+        MSG_INSTALL="Усталяванне safe-rm у"
+        MSG_DONE="Усталяванне завершана."
+        MSG_UNINSTALL="Выдаленне safe-rm..."
+        MSG_UNINSTALLED="Выдаленне завершана."
+        MSG_RELOGIN="Калі ласка, увайдзіце зноў або выканайце:"
+        MSG_TEST="Тэст:"
+        MSG_NOT_ROOT="Памылка: патрабуюцца правы root. Запусціце праз sudo."
+        MSG_NO_FILE="Памылка: адсутнічае ў бягучым каталогу"
+        MSG_ALREADY="safe-rm ужо ўсталяваны"
+        MSG_UNINSTALL_HINT="Каб выдаліць, выканайце:"
+        MSG_PATH_SETUP="Налада PATH:"
+        MSG_PATH_STANDARD="Стандарт:"
+        MSG_PATH_OVERRIDE="Калі shell перазапісвае PATH, дадайце ў канфігурацыю shell:"
+        MSG_UPDATE_TITLE="Абнавіць спіс абароны:"
+        MSG_UPDATE_CONF="абнавіць $SYSCONFDIR/safe-rm.conf"
+        MSG_UPDATE_DESC="Заўвага: прадвызначаныя абароненыя шляхі адрозніваюцца паміж дыстрыбутывамі.\nПрыкладзены safe-rm.conf — гэта агульнае прадвызначанае значэнне і\nможа не цалкам адпавядаць вашай сістэме.\nРэкамендуецца запусціць update-safe-rm, каб стварыць\nнайбольш прыдатны спіс абароны для бягучай сістэмы."
+        MSG_HOMEPAGE="Хатняя старонка праекта:"
+        MSG_INSTALLED_FILES="Усталяваныя файлы:"
+        MSG_DOWNLOADING="Спампоўка..."
+        MSG_EXTRACTING="Распакаванне..."
+        MSG_UNSUPPORTED="Не падтрымліваецца:"
+        MSG_NEED_TOOLS="Памылка: адсутнічаюць неабходныя інструменты."
+        MSG_CURRENT_DISTRO="Бягучае дыстрыбутыва"
+        MSG_MISSING="Адсутнічае"
+        MSG_RUN_INSTALL="Калі ласка, выканайце наступную каманду для ўсталявання:"
+        MSG_UNKNOWN_OS="Бягучае дыстрыбутыва не распазнана, калі ласка, усталюйце адсутныя інструменты ўручную"
+        MSG_AFTER_INSTALL="Пасля ўсталявання, калі ласка, перазапусціце гэты скрыпт."
+        MSG_DOWNLOAD_FAILED="Спампоўка не ўдалася"
+        MSG_EXTRACT_FAILED="Распакаванне не ўдалося"
+        MSG_TRY_GNU="Падрыхтоўка версіі gnu..."
+        MSG_TRY_MUSL="Падрыхтоўка версіі musl..."
+        MSG_GNU_SELECTED="Зараз усталёўваецца версія gnu..."
+        MSG_MUSL_SELECTED="Зараз усталёўваецца версія musl..."
+        MSG_FALLBACK_MUSL="Версія gnu недаступная, вяртанне да версіі musl..."
+        MSG_BOTH_FAILED="Памылка: ні версію gnu, ні версію musl немагчыма ўсталяваць у бягучай сістэме.\nМагчымыя прычыны: дыстрыбутыва/архітэктура яшчэ не падтрымліваецца або версія musl не скампілявана для гэтай платформы.\nКалі ласка, адкрыйце issue з сістэмнай інфармацыяй, надрукаванай вышэй, каб распрацоўшчыкі маглі дадаць пакет, якога не хапае."
+        ;;
+    ka_GE)
+        MSG_INSTALL="safe-rm-ის ინსტალაცია"
+        MSG_DONE="ინსტალაცია დასრულდა."
+        MSG_UNINSTALL="safe-rm-ის წაშლა..."
+        MSG_UNINSTALLED="წაშლა დასრულდა."
+        MSG_RELOGIN="გთხოვთ ხელახლა შეხვიდეთ ან გაუშვით:"
+        MSG_TEST="ტესტი:"
+        MSG_NOT_ROOT="შეცდომა: საჭიროა root. გაუშვით sudo-ით."
+        MSG_NO_FILE="შეცდომა: არ არის მიმდინარე დირექტორიაში"
+        MSG_ALREADY="safe-rm უკვე დაყენებულია"
+        MSG_UNINSTALL_HINT="წაშლისთვის გაუშვით:"
+        MSG_PATH_SETUP="PATH-ის დაყენება:"
+        MSG_PATH_STANDARD="სტანდარტი:"
+        MSG_PATH_OVERRIDE="თუ shell გადაფარავს PATH-ს, დაამატეთ shell-ის კონფიგურაციაში:"
+        MSG_UPDATE_TITLE="დაცვის სიის განახლება:"
+        MSG_UPDATE_CONF="$SYSCONFDIR/safe-rm.conf-ის განახლება"
+        MSG_UPDATE_DESC="შენიშვნა: ნაგულისხმევი დაცული ბილიკები განსხვავდება დისტრიბუციების მიხედვით.\nთანდართული safe-rm.conf არის ზოგადი ნაგულისხმევი მნიშვნელობა და\nშეიძლება სრულად არ შეესაბამებოდეს თქვენს სისტემას.\nრეკომენდებულია update-safe-rm-ის გაშვება მიმდინარე სისტემისთვის\nყველაზე შესაფერისი დაცვის სიის შესაქმნელად."
+        MSG_HOMEPAGE="პროექტის მთავარი გვერდი:"
+        MSG_INSTALLED_FILES="დაყენებული ფაილები:"
+        MSG_DOWNLOADING="ჩამოტვირთვა..."
+        MSG_EXTRACTING="ამოღება..."
+        MSG_UNSUPPORTED="მხარდაუჭერელია:"
+        MSG_NEED_TOOLS="შეცდომა: აკლია საჭირო ინსტრუმენტები."
+        MSG_CURRENT_DISTRO="მიმდინარე დისტრიბუცია"
+        MSG_MISSING="აკლია"
+        MSG_RUN_INSTALL="გთხოვთ გაუშვით შემდეგი ბრძანება ინსტალაციისთვის:"
+        MSG_UNKNOWN_OS="მიმდინარე დისტრიბუცია ვერ იქნა ამოცნობილი, გთხოვთ ხელით დააყენოთ აკლია ინსტრუმენტები"
+        MSG_AFTER_INSTALL="ინსტალაციის შემდეგ, გთხოვთ ხელახლა გაუშვათ ეს სკრიპტი."
+        MSG_DOWNLOAD_FAILED="ჩამოტვირთვა ვერ მოხერხდა"
+        MSG_EXTRACT_FAILED="ამოღება ვერ მოხერხდა"
+        MSG_TRY_GNU="gnu ვერსიის მომზადება..."
+        MSG_TRY_MUSL="musl ვერსიის მომზადება..."
+        MSG_GNU_SELECTED="მიმდინარეობს gnu ვერსიის ინსტალაცია..."
+        MSG_MUSL_SELECTED="მიმდინარეობს musl ვერსიის ინსტალაცია..."
+        MSG_FALLBACK_MUSL="gnu ვერსია მიუწვდომელია, ვბრუნდები musl ვერსიაზე..."
+        MSG_BOTH_FAILED="შეცდომა: არც gnu და არც musl ვერსია ვერ დაყენდება მიმდინარე სისტემაზე.\nშესაძლო მიზეზები: დისტრიბუცია/არქიტექტურა ჯერ არ არის მხარდაჭერილი ან musl ვერსია არ არის კომპილირებული ამ პლატფორმისთვის.\nგთხოვთ გახსნათ issue ზემოთ დაბეჭდილი სისტემური ინფორმაციით, რომ დეველოპერებმა დაამატონ აკლია პაკეტი."
+        ;;
+    hy_AM)
+        MSG_INSTALL="safe-rm-ի տեղադրում"
+        MSG_DONE="Տեղադրումն ավարտվեց։"
+        MSG_UNINSTALL="safe-rm-ի հեռացում..."
+        MSG_UNINSTALLED="Հեռացումն ավարտվեց։"
+        MSG_RELOGIN="Խնդրում ենք նորից մուտք գործել կամ գործարկել՝"
+        MSG_TEST="Փորձարկում՝"
+        MSG_NOT_ROOT="Սխալ՝ պահանջվում է root։ Գործարկեք sudo-ով։"
+        MSG_NO_FILE="Սխալ՝ բացակայում է ընթացիկ պանակում"
+        MSG_ALREADY="safe-rm-ն արդեն տեղադրված է"
+        MSG_UNINSTALL_HINT="Հեռացնելու համար գործարկեք՝"
+        MSG_PATH_SETUP="PATH-ի կարգավորում՝"
+        MSG_PATH_STANDARD="Ստանդարտ՝"
+        MSG_PATH_OVERRIDE="Եթե shell-ը վերագրանցում է PATH-ը, ավելացրեք shell-ի կարգավորումներում՝"
+        MSG_UPDATE_TITLE="Թարմացնել պաշտպանության ցանկը՝"
+        MSG_UPDATE_CONF="թարմացնել $SYSCONFDIR/safe-rm.conf"
+        MSG_UPDATE_DESC="Նշում՝ լռելյայն պաշտպանված ուղիները տարբերվում են ըստ դիստրիբուտիվների։\nԿցված safe-rm.conf-ը ընդհանուր լռելյայն արժեք է և\nկարող է ամբողջությամբ չհամապատասխանել ձեր համակարգին։\nԽորհուրդ է տրվում գործարկել update-safe-rm՝ ընթացիկ համակարգի համար\nամենահարմար պաշտպանության ցանկը ստեղծելու համար։"
+        MSG_HOMEPAGE="Ծրագրի գլխավոր էջ՝"
+        MSG_INSTALLED_FILES="Տեղադրված ֆայլեր՝"
+        MSG_DOWNLOADING="Ներբեռնում..."
+        MSG_EXTRACTING="Արխիվից հանում..."
+        MSG_UNSUPPORTED="Չի աջակցվում՝"
+        MSG_NEED_TOOLS="Սխալ՝ բացակայում են անհրաժեշտ գործիքները։"
+        MSG_CURRENT_DISTRO="Ընթացիկ դիստրիբուտիվ"
+        MSG_MISSING="Բացակայում է"
+        MSG_RUN_INSTALL="Տեղադրելու համար գործարկեք հետևյալ հրամանը՝"
+        MSG_UNKNOWN_OS="Ընթացիկ դիստրիբուտիվը չհաջողվեց ճանաչել, խնդրում ենք ձեռքով տեղադրել բացակայող գործիքները"
+        MSG_AFTER_INSTALL="Տեղադրումից հետո խնդրում ենք նորից գործարկել այս սկրիպտը։"
+        MSG_DOWNLOAD_FAILED="Ներբեռնումը ձախողվեց"
+        MSG_EXTRACT_FAILED="Արխիվից հանելը ձախողվեց"
+        MSG_TRY_GNU="gnu տարբերակի պատրաստում..."
+        MSG_TRY_MUSL="musl տարբերակի պատրաստում..."
+        MSG_GNU_SELECTED="Ներկայումս տեղադրվում է gnu տարբերակը..."
+        MSG_MUSL_SELECTED="Ներկայումս տեղադրվում է musl տարբերակը..."
+        MSG_FALLBACK_MUSL="gnu տարբերակը հասանելի չէ, վերադառնում եմ musl տարբերակին..."
+        MSG_BOTH_FAILED="Սխալ՝ ոչ gnu, ոչ musl տարբերակը հնարավոր չէ տեղադրել ընթացիկ համակարգում։\nՀնարավոր պատճառներ՝ դիստրիբուտիվը/ճարտարապետությունը դեռ չի աջակցվում, կամ musl տարբերակը չի կոմպիլացվել այս հարթակի համար։\nԽնդրում ենք բացել issue՝ կցելով վերևում տպված համակարգի տեղեկատվությունը, որպեսզի մշակողները ավելացնեն բացակայող փաթեթը։"
+        ;;
+    az_AZ)
+        MSG_INSTALL="safe-rm bura quraşdırılır:"
+        MSG_DONE="Quraşdırma tamamlandı."
+        MSG_UNINSTALL="safe-rm silinir..."
+        MSG_UNINSTALLED="Silinmə tamamlandı."
+        MSG_RELOGIN="Zəhmət olmasa yenidən daxil olun və ya işlədin:"
+        MSG_TEST="Test:"
+        MSG_NOT_ROOT="Xəta: root tələb olunur. sudo ilə işlədin."
+        MSG_NO_FILE="Xəta: cari qovluqda yoxdur"
+        MSG_ALREADY="safe-rm artıq quraşdırılıb"
+        MSG_UNINSTALL_HINT="Silmək üçün işlədin:"
+        MSG_PATH_SETUP="PATH quraşdırması:"
+        MSG_PATH_STANDARD="Standart:"
+        MSG_PATH_OVERRIDE="Əgər shell PATH-i üzərinə yazırsa, shell konfiqurasiyasına əlavə edin:"
+        MSG_UPDATE_TITLE="Müdafiə siyahısını yenilə:"
+        MSG_UPDATE_CONF="$SYSCONFDIR/safe-rm.conf yenilə"
+        MSG_UPDATE_DESC="Qeyd: standart qorunan yollar distribusiyalara görə fərqlənir.\nPaketə daxil olan safe-rm.conf ümumi standart dəyərdir və\nsisteminizlə tam uyğun gəlməyə bilər.\nCari sistem üçün ən uyğun müdafiə siyahısını yaratmaq üçün\nupdate-safe-rm işlətmək tövsiyə olunur."
+        MSG_HOMEPAGE="Layihə ana səhifəsi:"
+        MSG_INSTALLED_FILES="Quraşdırılmış fayllar:"
+        MSG_DOWNLOADING="Yüklənir..."
+        MSG_EXTRACTING="Arxivi açılır..."
+        MSG_UNSUPPORTED="Dəstəklənmir:"
+        MSG_NEED_TOOLS="Xəta: tələb olunan alətlər yoxdur."
+        MSG_CURRENT_DISTRO="Cari distribusiya"
+        MSG_MISSING="Yoxdur"
+        MSG_RUN_INSTALL="Quraşdırmaq üçün aşağıdaki əmri işlədin:"
+        MSG_UNKNOWN_OS="Cari distribusiya tanınmadı, zəhmət olmasa çatışmayan alətləri əl ilə quraşdırın"
+        MSG_AFTER_INSTALL="Quraşdırmadan sonra bu skripti yenidən işlədin."
+        MSG_DOWNLOAD_FAILED="Yükləmə uğursuz oldu"
+        MSG_EXTRACT_FAILED="Arxivi açmaq uğursuz oldu"
+        MSG_TRY_GNU="gnu versiyası hazırlanır..."
+        MSG_TRY_MUSL="musl versiyası hazırlanır..."
+        MSG_GNU_SELECTED="Hazırda gnu versiyası quraşdırılır..."
+        MSG_MUSL_SELECTED="Hazırda musl versiyası quraşdırılır..."
+        MSG_FALLBACK_MUSL="gnu versiyası əlçatan deyil, musl versiyasına qayıdılır..."
+        MSG_BOTH_FAILED="Xəta: nə gnu, nə də musl versiyası cari sistemdə quraşdırıla bilməz.\nMümkün səbəblər: distribusiya/arxitektura hələ dəstəklənmir və ya musl versiyası bu platforma üçün kompilyasiya olunmayıb.\nZəhmət olmasa yuxarıda çap olunmuş sistem məlumatı ilə issue açın ki, tərtibatçılar çatışmayan paketi əlavə edə bilsinlər."
+        ;;
+    kk_KZ)
+        MSG_INSTALL="safe-rm орнату"
+        MSG_DONE="Орнату аяқталды."
+        MSG_UNINSTALL="safe-rm жою..."
+        MSG_UNINSTALLED="Жою аяқталды."
+        MSG_RELOGIN="Қайта кіріңіз немесе орындаңыз:"
+        MSG_TEST="Тест:"
+        MSG_NOT_ROOT="Қате: root қажет. sudo арқылы орындаңыз."
+        MSG_NO_FILE="Қате: ағымдағы каталогта жоқ"
+        MSG_ALREADY="safe-rm әлдеқашан орнатылған"
+        MSG_UNINSTALL_HINT="Жою үшін орындаңыз:"
+        MSG_PATH_SETUP="PATH орнату:"
+        MSG_PATH_STANDARD="Стандарт:"
+        MSG_PATH_OVERRIDE="Егер shell PATH-ты қайта жазса, shell конфигурациясына қосыңыз:"
+        MSG_UPDATE_TITLE="Қорғау тізімін жаңарту:"
+        MSG_UPDATE_CONF="$SYSCONFDIR/safe-rm.conf жаңарту"
+        MSG_UPDATE_DESC="Ескерту: әдепкі қорғалған жолдар дистрибутивтерге қарай әртүрлі.\nҚосылған safe-rm.conf жалпы әдепкі мән және\nжүйеңізге толық сәйкес келмеуі мүмкін.\nАғымдағы жүйе үшін ең қолайлы қорғау тізімін жасау үшін\nupdate-safe-rm іске қосу ұсынылады."
+        MSG_HOMEPAGE="Жобаның басты беті:"
+        MSG_INSTALLED_FILES="Орнатылған файлдар:"
+        MSG_DOWNLOADING="Жүктелуде..."
+        MSG_EXTRACTING="Архивтен шығарылуда..."
+        MSG_UNSUPPORTED="Қолдау көрсетілмейді:"
+        MSG_NEED_TOOLS="Қате: қажетті құралдар жоқ."
+        MSG_CURRENT_DISTRO="Ағымдағы дистрибутив"
+        MSG_MISSING="Жоқ"
+        MSG_RUN_INSTALL="Орнату үшін келесі пәрменді орындаңыз:"
+        MSG_UNKNOWN_OS="Ағымдағы дистрибутив танылмады, жетіспейтін құралдарды қолмен орнатыңыз"
+        MSG_AFTER_INSTALL="Орнатудан кейін осы скриптті қайта іске қосыңыз."
+        MSG_DOWNLOAD_FAILED="Жүктеу сәтсіз аяқталды"
+        MSG_EXTRACT_FAILED="Архивтен шығару сәтсіз аяқталды"
+        MSG_TRY_GNU="gnu нұсқасы дайындалуда..."
+        MSG_TRY_MUSL="musl нұсқасы дайындалуда..."
+        MSG_GNU_SELECTED="Қазір gnu нұсқасы орнатылуда..."
+        MSG_MUSL_SELECTED="Қазір musl нұсқасы орнатылуда..."
+        MSG_FALLBACK_MUSL="gnu нұсқасы қолжетімсіз, musl нұсқасына оралу..."
+        MSG_BOTH_FAILED="Қате: gnu да, musl да нұсқасы ағымдағы жүйеге орнатылмайды.\nЫқтимал себептер: дистрибутив/архитектура әлі қолдау көрсетілмейді немесе musl нұсқасы осы платформа үшін компиляцияланбаған.\nЖоғарыда басылған жүйелік ақпаратпен issue ашыңыз, сонда әзірлеушілер жетіспейтін пакетті қоса алады."
+        ;;
+    uz_UZ)
+        MSG_INSTALL="safe-rm o'rnatilmoqda"
+        MSG_DONE="O'rnatish tugallandi."
+        MSG_UNINSTALL="safe-rm olib tashlanmoqda..."
+        MSG_UNINSTALLED="Olib tashlash tugallandi."
+        MSG_RELOGIN="Iltimos, qaytadan kiring yoki ishga tushiring:"
+        MSG_TEST="Test:"
+        MSG_NOT_ROOT="Xato: root kerak. sudo bilan ishga tushiring."
+        MSG_NO_FILE="Xato: joriy katalogda mavjud emas"
+        MSG_ALREADY="safe-rm allaqachon o'rnatilgan"
+        MSG_UNINSTALL_HINT="Olib tashlash uchun ishga tushiring:"
+        MSG_PATH_SETUP="PATH sozlash:"
+        MSG_PATH_STANDARD="Standart:"
+        MSG_PATH_OVERRIDE="Agar shell PATH-ni qayta yozsa, shell konfiguratsiyasiga qo'shing:"
+        MSG_UPDATE_TITLE="Himoya ro'yxatini yangilash:"
+        MSG_UPDATE_CONF="$SYSCONFDIR/safe-rm.conf yangilash"
+        MSG_UPDATE_DESC="Eslatma: standart himoyalangan yo'llar distributivlarga qarab farq qiladi.\nPaketga kiritilgan safe-rm.conf umumiy standart qiymat va\nsizning tizimingizga to'liq mos kelmasligi mumkin.\nJoriy tizim uchun eng mos himoya ro'yxatini yaratish uchun\nupdate-safe-rm ishga tushirish tavsiya etiladi."
+        MSG_HOMEPAGE="Loyiha bosh sahifasi:"
+        MSG_INSTALLED_FILES="O'rnatilgan fayllar:"
+        MSG_DOWNLOADING="Yuklanmoqda..."
+        MSG_EXTRACTING="Arxivdan chiqarilmoqda..."
+        MSG_UNSUPPORTED="Qo'llab-quvvatlanmaydi:"
+        MSG_NEED_TOOLS="Xato: kerakli vositalar mavjud emas."
+        MSG_CURRENT_DISTRO="Joriy distributiv"
+        MSG_MISSING="Mavjud emas"
+        MSG_RUN_INSTALL="O'rnatish uchun quyidagi buyruqni ishga tushiring:"
+        MSG_UNKNOWN_OS="Joriy distributiv aniqlanmadi, iltimos, yetishmayotgan vositalarni qo'lda o'rnating"
+        MSG_AFTER_INSTALL="O'rnatishdan so'ng ushbu skriptni qayta ishga tushiring."
+        MSG_DOWNLOAD_FAILED="Yuklab olish amalga oshmadi"
+        MSG_EXTRACT_FAILED="Arxivdan chiqarish amalga oshmadi"
+        MSG_TRY_GNU="gnu versiyasi tayyorlanmoqda..."
+        MSG_TRY_MUSL="musl versiyasi tayyorlanmoqda..."
+        MSG_GNU_SELECTED="Hozir gnu versiyasi o'rnatilmoqda..."
+        MSG_MUSL_SELECTED="Hozir musl versiyasi o'rnatilmoqda..."
+        MSG_FALLBACK_MUSL="gnu versiyasi mavjud emas, musl versiyasiga qaytilmoqda..."
+        MSG_BOTH_FAILED="Xato: na gnu, na musl versiyasi joriy tizimda o'rnatilishi mumkin.\nMumkin sabablar: distributiv/arxitektura hali qo'llab-quvvatlanmaydi yoki musl versiyasi ushbu platforma uchun kompilyatsiya qilinmagan.\nIltimos, yuqorida chop etilgan tizim ma'lumotlari bilan issue oching, shunda ishlab chiquvchilar yetishmayotgan paketni qo'shishi mumkin."
+        ;;
+    mn_MN)
+        MSG_INSTALL="safe-rm-г суулгаж байна"
+        MSG_DONE="Суулгалт дууслаа."
+        MSG_UNINSTALL="safe-rm-г устгаж байна..."
+        MSG_UNINSTALLED="Устгалт дууслаа."
+        MSG_RELOGIN="Дахин нэвтэрнэ үү, эсвэл ажиллуулна уу:"
+        MSG_TEST="Туршилт:"
+        MSG_NOT_ROOT="Алдаа: root шаардлагатай. sudo-оор ажиллуулна уу."
+        MSG_NO_FILE="Алдаа: одоогийн хавтаст байхгүй"
+        MSG_ALREADY="safe-rm аль хэдийн суулгасан"
+        MSG_UNINSTALL_HINT="Устгахын тулд ажиллуулна уу:"
+        MSG_PATH_SETUP="PATH тохиргоо:"
+        MSG_PATH_STANDARD="Стандарт:"
+        MSG_PATH_OVERRIDE="Хэрэв shell PATH-г дарж бичвэл shell тохиргоонд нэмнэ үү:"
+        MSG_UPDATE_TITLE="Хамгаалалтын жагсаалтыг шинэчлэх:"
+        MSG_UPDATE_CONF="$SYSCONFDIR/safe-rm.conf шинэчлэх"
+        MSG_UPDATE_DESC="Тэмдэглэл: өгөгдмөл хамгаалагдсан замууд дистрибутиваас хамаарч өөр өөр байна.\nБагцад орсон safe-rm.conf нь ерөнхий өгөгдмөл утга бөгөөд\nтаны системтэй бүрэн тохирохгүй байж болно.\nОдоогийн системд хамгийн тохиромжтой хамгаалалтын жагсаалтыг\nүүсгэхийн тулд update-safe-rm ажиллуулахыг зөвлөж байна."
+        MSG_HOMEPAGE="Төслийн нүүр хуудас:"
+        MSG_INSTALLED_FILES="Суулгасан файлууд:"
+        MSG_DOWNLOADING="Татаж байна..."
+        MSG_EXTRACTING="Задаргаа хийж байна..."
+        MSG_UNSUPPORTED="Дэмжигдэхгүй:"
+        MSG_NEED_TOOLS="Алдаа: шаардлагатай хэрэгслүүд байхгүй."
+        MSG_CURRENT_DISTRO="Одоогийн дистрибутив"
+        MSG_MISSING="Байхгүй"
+        MSG_RUN_INSTALL="Суулгахын тулд дараах командыг ажиллуулна уу:"
+        MSG_UNKNOWN_OS="Одоогийн дистрибутивыг таньж чадсангүй, дутуу хэрэгслүүдийг гараар суулгана уу"
+        MSG_AFTER_INSTALL="Суулгасны дараа энэ скриптийг дахин ажиллуулна уу."
+        MSG_DOWNLOAD_FAILED="Татах амжилтгүй"
+        MSG_EXTRACT_FAILED="Задаргаа амжилтгүй"
+        MSG_TRY_GNU="gnu хувилбарыг бэлтгэж байна..."
+        MSG_TRY_MUSL="musl хувилбарыг бэлтгэж байна..."
+        MSG_GNU_SELECTED="Одоо gnu хувилбарыг суулгаж байна..."
+        MSG_MUSL_SELECTED="Одоо musl хувилбарыг суулгаж байна..."
+        MSG_FALLBACK_MUSL="gnu хувилбар байхгүй тул musl хувилбар руу буцаж байна..."
+        MSG_BOTH_FAILED="Алдаа: gnu болон musl хувилбарыг одоогийн системд суулгах боломжгүй.\nБоломжит шалтгаан: дистрибутив/архитектур хараахан дэмжигдээгүй эсвэл musl хувилбар энэ платформд зориулж компиляци хийгдээгүй.\nДээр хэвлэсэн системийн мэдээллийг хавсарган issue нээнэ үү, ингэснээр хөгжүүлэгчид дутуу багцыг нэмэх боломжтой."
+        ;;
+    ne_NP)
+        MSG_INSTALL="safe-rm स्थापना गर्दै"
+        MSG_DONE="स्थापना सम्पन्न भयो।"
+        MSG_UNINSTALL="safe-rm हटाउँदै..."
+        MSG_UNINSTALLED="हटाउने कार्य सम्पन्न भयो।"
+        MSG_RELOGIN="कृपया फेरि लगइन गर्नुहोस्, वा चलाउनुहोस्:"
+        MSG_TEST="परीक्षण:"
+        MSG_NOT_ROOT="त्रुटि: root आवश्यक छ। sudo सँग चलाउनुहोस्।"
+        MSG_NO_FILE="त्रुटि: हालको निर्देशिकामा छैन"
+        MSG_ALREADY="safe-rm पहिले नै स्थापित छ"
+        MSG_UNINSTALL_HINT="हटाउनको लागि चलाउनुहोस्:"
+        MSG_PATH_SETUP="PATH सेटअप:"
+        MSG_PATH_STANDARD="मानक:"
+        MSG_PATH_OVERRIDE="यदि shell ले PATH लाई अधिलेखन गर्छ भने shell कन्फिगमा थप्नुहोस्:"
+        MSG_UPDATE_TITLE="सुरक्षा सूची अद्यावधिक गर्नुहोस्:"
+        MSG_UPDATE_CONF="$SYSCONFDIR/safe-rm.conf अद्यावधिक गर्नुहोस्"
+        MSG_UPDATE_DESC="नोट: पूर्वनिर्धारित सुरक्षित मार्गहरू वितरण अनुसार फरक पर्छन्।\nसमावेश गरिएको safe-rm.conf सामान्य पूर्वनिर्धारित मान हो र\nतपाईंको प्रणालीसँग पूर्ण रूपमा मेल नखान सक्छ।\nहालको प्रणालीको लागि सबैभन्दा उपयुक्त सुरक्षा सूची\nउत्पन्न गर्न update-safe-rm चलाउन सिफारिस गरिन्छ।"
+        MSG_HOMEPAGE="परियोजना गृहपृष्ठ:"
+        MSG_INSTALLED_FILES="स्थापित फाइलहरू:"
+        MSG_DOWNLOADING="डाउनलोड गर्दै..."
+        MSG_EXTRACTING="निकाल्दै..."
+        MSG_UNSUPPORTED="असमर्थित:"
+        MSG_NEED_TOOLS="त्रुटि: आवश्यक उपकरणहरू छैनन्।"
+        MSG_CURRENT_DISTRO="हालको वितरण"
+        MSG_MISSING="छैन"
+        MSG_RUN_INSTALL="स्थापना गर्नको लागि निम्न आदेश चलाउनुहोस्:"
+        MSG_UNKNOWN_OS="हालको वितरण पहिचान गर्न सकिएन, कृपया छुटेका उपकरणहरू म्यानुअल रूपमा स्थापना गर्नुहोस्"
+        MSG_AFTER_INSTALL="स्थापना पछि, कृपया यो स्क्रिप्ट फेरि चलाउनुहोस्।"
+        MSG_DOWNLOAD_FAILED="डाउनलोड असफल"
+        MSG_EXTRACT_FAILED="निकाल्न असफल"
+        MSG_TRY_GNU="gnu संस्करण तयार गर्दै..."
+        MSG_TRY_MUSL="musl संस्करण तयार गर्दै..."
+        MSG_GNU_SELECTED="हाल gnu संस्करण स्थापना गर्दै..."
+        MSG_MUSL_SELECTED="हाल musl संस्करण स्थापना गर्दै..."
+        MSG_FALLBACK_MUSL="gnu संस्करण उपलब्ध छैन, musl संस्करणमा फर्किंदै..."
+        MSG_BOTH_FAILED="त्रुटि: gnu र musl दुवै संस्करण हालको प्रणालीमा स्थापना गर्न सकिँदैन।\nसम्भावित कारण: वितरण/आर्किटेक्चर अझै समर्थित छैन वा musl संस्करण यो प्लेटफर्मको लागि कम्पाइल गरिएको छैन।\nकृपया माथि प्रिन्ट गरिएको प्रणाली जानकारी संलग्न गरी issue खोल्नुहोस्, जसले गर्दा विकासकर्ताहरूले छुटेको प्याकेज थप्न सकून्।"
+        ;;
+    si_LK)
+        MSG_INSTALL="safe-rm ස්ථාපනය කරමින්"
+        MSG_DONE="ස්ථාපනය සම්පූර්ණයි."
+        MSG_UNINSTALL="safe-rm ඉවත් කරමින්..."
+        MSG_UNINSTALLED="ඉවත් කිරීම සම්පූර්ණයි."
+        MSG_RELOGIN="කරුණාකර නැවත පිවිසෙන්න, හෝ ධාවනය කරන්න:"
+        MSG_TEST="පරීක්ෂණය:"
+        MSG_NOT_ROOT="දෝෂය: root අවශ්‍යයි. sudo සමඟ ධාවනය කරන්න."
+        MSG_NO_FILE="දෝෂය: වර්තමාන නාමාවලියේ නොමැත"
+        MSG_ALREADY="safe-rm දැනටමත් ස්ථාපනය කර ඇත"
+        MSG_UNINSTALL_HINT="ඉවත් කිරීමට ධාවනය කරන්න:"
+        MSG_PATH_SETUP="PATH සැකසුම:"
+        MSG_PATH_STANDARD="සම්මත:"
+        MSG_PATH_OVERRIDE="shell මගින් PATH ප්‍රතිස්ථාපනය කරන්නේ නම් shell වින්‍යාසයට එක් කරන්න:"
+        MSG_UPDATE_TITLE="ආරක්ෂණ ලැයිස්තුව යාවත්කාලීන කරන්න:"
+        MSG_UPDATE_CONF="$SYSCONFDIR/safe-rm.conf යාවත්කාලීන කරන්න"
+        MSG_UPDATE_DESC="සටහන: පෙරනිමි ආරක්ෂිත මාර්ග බෙදාහැරීම් අනුව වෙනස් වේ.\nඇතුළත් safe-rm.conf යනු සාමාන්‍ය පෙරනිමි අගයක් වන අතර\nඔබේ පද්ධතියට සම්පූර්ණයෙන් නොගැලපිය හැක.\nවර්තමාන පද්ධතියට වඩාත් සුදුසු ආරක්ෂණ ලැයිස්තුවක්\nජනනය කිරීමට update-safe-rm ධාවනය කිරීම නිර්දේශ කෙරේ."
+        MSG_HOMEPAGE="ව්‍යාපෘති මුල් පිටුව:"
+        MSG_INSTALLED_FILES="ස්ථාපිත ගොනු:"
+        MSG_DOWNLOADING="බාගනිමින්..."
+        MSG_EXTRACTING="විස්තාරණය කරමින්..."
+        MSG_UNSUPPORTED="සහාය නොදක්වයි:"
+        MSG_NEED_TOOLS="දෝෂය: අවශ්‍ය මෙවලම් නොමැත."
+        MSG_CURRENT_DISTRO="වර්තමාන බෙදාහැරීම"
+        MSG_MISSING="නොමැත"
+        MSG_RUN_INSTALL="ස්ථාපනය කිරීමට පහත විධානය ධාවනය කරන්න:"
+        MSG_UNKNOWN_OS="වර්තමාන බෙදාහැරීම හඳුනාගත නොහැකි විය, කරුණාකර නොමැති මෙවලම් අතින් ස්ථාපනය කරන්න"
+        MSG_AFTER_INSTALL="ස්ථාපනයෙන් පසු, කරුණාකර මෙම ස්ක්‍රිප්ටය නැවත ධාවනය කරන්න."
+        MSG_DOWNLOAD_FAILED="බාගැනීම අසාර්ථකයි"
+        MSG_EXTRACT_FAILED="විස්තාරණය අසාර්ථකයි"
+        MSG_TRY_GNU="gnu අනුවාදය සූදානම් කරමින්..."
+        MSG_TRY_MUSL="musl අනුවාදය සූදානම් කරමින්..."
+        MSG_GNU_SELECTED="දැනට gnu අනුවාදය ස්ථාපනය කරමින්..."
+        MSG_MUSL_SELECTED="දැනට musl අනුවාදය ස්ථාපනය කරමින්..."
+        MSG_FALLBACK_MUSL="gnu අනුවාදය නොමැත, musl අනුවාදයට නැවත යමින්..."
+        MSG_BOTH_FAILED="දෝෂය: gnu හෝ musl අනුවාදය වර්තමාන පද්ධතියේ ස්ථාපනය කළ නොහැක.\nහේතු විය හැක්කේ: බෙදාහැරීම/වාස්තුවිද්‍යාව තවම සහාය නොදක්වයි හෝ musl අනුවාදය මෙම වේදිකාව සඳහා සම්පාදනය කර නොමැත.\nකරුණාකර ඉහත මුද්‍රණය කළ පද්ධති තොරතුරු සමඟ issue එකක් විවෘත කරන්න, එවිට සංවර්ධකයින්ට නොමැති පැකේජය එක් කළ හැක."
+        ;;
+    ta_IN)
+        MSG_INSTALL="safe-rm ஐ நிறுவுகிறது"
+        MSG_DONE="நிறுவல் முடிந்தது."
+        MSG_UNINSTALL="safe-rm ஐ நீக்குகிறது..."
+        MSG_UNINSTALLED="நீக்கம் முடிந்தது."
+        MSG_RELOGIN="மீண்டும் உள்நுழையவும் அல்லது இயக்கவும்:"
+        MSG_TEST="சோதனை:"
+        MSG_NOT_ROOT="பிழை: root தேவை. sudo உடன் இயக்கவும்."
+        MSG_NO_FILE="பிழை: தற்போதைய கோப்பகத்தில் இல்லை"
+        MSG_ALREADY="safe-rm ஏற்கனவே நிறுவப்பட்டுள்ளது"
+        MSG_UNINSTALL_HINT="நீக்க இயக்கவும்:"
+        MSG_PATH_SETUP="PATH அமைப்பு:"
+        MSG_PATH_STANDARD="தரநிலை:"
+        MSG_PATH_OVERRIDE="shell PATH ஐ மேலெழுதினால் shell கட்டமைப்பில் சேர்க்கவும்:"
+        MSG_UPDATE_TITLE="பாதுகாப்பு பட்டியலை புதுப்பிக்கவும்:"
+        MSG_UPDATE_CONF="$SYSCONFDIR/safe-rm.conf ஐ புதுப்பிக்கவும்"
+        MSG_UPDATE_DESC="குறிப்பு: இயல்புநிலை பாதுகாக்கப்பட்ட பாதைகள் விநியோகங்களுக்கு இடையே வேறுபடும்.\nஇணைக்கப்பட்ட safe-rm.conf ஒரு பொதுவான இயல்புநிலை மதிப்பு மற்றும்\nஉங்கள் அமைப்புடன் முழுமையாக பொருந்தாமல் இருக்கலாம்.\nதற்போதைய அமைப்பிற்கு மிகவும் பொருத்தமான பாதுகாப்பு பட்டியலை\nஉருவாக்க update-safe-rm ஐ இயக்க பரிந்துரைக்கப்படுகிறது."
+        MSG_HOMEPAGE="திட்ட முகப்பு:"
+        MSG_INSTALLED_FILES="நிறுவப்பட்ட கோப்புகள்:"
+        MSG_DOWNLOADING="பதிவிறக்குகிறது..."
+        MSG_EXTRACTING="பிரித்தெடுக்கிறது..."
+        MSG_UNSUPPORTED="ஆதரிக்கப்படவில்லை:"
+        MSG_NEED_TOOLS="பிழை: தேவையான கருவிகள் இல்லை."
+        MSG_CURRENT_DISTRO="தற்போதைய விநியோகம்"
+        MSG_MISSING="இல்லை"
+        MSG_RUN_INSTALL="நிறுவ பின்வரும் கட்டளையை இயக்கவும்:"
+        MSG_UNKNOWN_OS="தற்போதைய விநியோகம் அடையாளம் காணப்படவில்லை, தயவுசெய்து இல்லாத கருவிகளை கைமுறையாக நிறுவவும்"
+        MSG_AFTER_INSTALL="நிறுவலுக்குப் பிறகு, இந்த ஸ்கிரிப்டை மீண்டும் இயக்கவும்."
+        MSG_DOWNLOAD_FAILED="பதிவிறக்கம் தோல்வியடைந்தது"
+        MSG_EXTRACT_FAILED="பிரித்தெடுத்தல் தோல்வியடைந்தது"
+        MSG_TRY_GNU="gnu பதிப்பை தயார் செய்கிறது..."
+        MSG_TRY_MUSL="musl பதிப்பை தயார் செய்கிறது..."
+        MSG_GNU_SELECTED="தற்போது gnu பதிப்பு நிறுவப்படுகிறது..."
+        MSG_MUSL_SELECTED="தற்போது musl பதிப்பு நிறுவப்படுகிறது..."
+        MSG_FALLBACK_MUSL="gnu பதிப்பு கிடைக்கவில்லை, musl பதிப்புக்குத் திரும்புகிறது..."
+        MSG_BOTH_FAILED="பிழை: gnu அல்லது musl பதிப்பை தற்போதைய அமைப்பில் நிறுவ முடியாது.\nசாத்தியமான காரணங்கள்: விநியோகம்/கட்டமைப்பு இன்னும் ஆதரிக்கப்படவில்லை அல்லது musl பதிப்பு இந்த தளத்திற்கு தொகுக்கப்படவில்லை.\nமேலே அச்சிடப்பட்ட கணினி தகவலுடன் issue திறக்கவும், அதன் மூலம் உருவாக்குநர்கள் இல்லாத தொகுப்பைச் சேர்க்க முடியும்."
+        ;;
+    te_IN)
+        MSG_INSTALL="safe-rm ను ఇన్‌స్టాల్ చేస్తోంది"
+        MSG_DONE="ఇన్‌స్టాలేషన్ పూర్తయింది."
+        MSG_UNINSTALL="safe-rm ను తీసివేస్తోంది..."
+        MSG_UNINSTALLED="తీసివేత పూర్తయింది."
+        MSG_RELOGIN="దయచేసి మళ్లీ లాగిన్ అవ్వండి లేదా అమలు చేయండి:"
+        MSG_TEST="పరీక్ష:"
+        MSG_NOT_ROOT="లోపం: root అవసరం. sudo తో అమలు చేయండి."
+        MSG_NO_FILE="లోపం: ప్రస్తుత డైరెక్టరీలో లేదు"
+        MSG_ALREADY="safe-rm ఇప్పటికే ఇన్‌స్టాల్ చేయబడింది"
+        MSG_UNINSTALL_HINT="తీసివేయడానికి అమలు చేయండి:"
+        MSG_PATH_SETUP="PATH సెటప్:"
+        MSG_PATH_STANDARD="ప్రామాణికం:"
+        MSG_PATH_OVERRIDE="shell PATH ను భర్తీ చేస్తే shell కాన్ఫిగరేషన్‌కు జోడించండి:"
+        MSG_UPDATE_TITLE="రక్షణ జాబితాను నవీకరించండి:"
+        MSG_UPDATE_CONF="$SYSCONFDIR/safe-rm.conf ను నవీకరించండి"
+        MSG_UPDATE_DESC="గమనిక: డిఫాల్ట్ రక్షిత మార్గాలు పంపిణీల మధ్య భిన్నంగా ఉంటాయి.\nబండిల్ చేసిన safe-rm.conf సాధారణ డిఫాల్ట్ విలువ మరియు\nమీ సిస్టమ్‌తో పూర్తిగా సరిపోకపోవచ్చు.\nప్రస్తుత సిస్టమ్‌కు అత్యంత సరిపోయే రక్షణ జాబితాను\nసృష్టించడానికి update-safe-rm అమలు చేయాలని సిఫార్సు చేయబడింది."
+        MSG_HOMEPAGE="ప్రాజెక్ట్ హోమ్‌పేజీ:"
+        MSG_INSTALLED_FILES="ఇన్‌స్టాల్ చేసిన ఫైల్‌లు:"
+        MSG_DOWNLOADING="డౌన్‌లోడ్ చేస్తోంది..."
+        MSG_EXTRACTING="విస్తరిస్తోంది..."
+        MSG_UNSUPPORTED="మద్దతు లేదు:"
+        MSG_NEED_TOOLS="లోపం: అవసరమైన సాధనాలు లేవు."
+        MSG_CURRENT_DISTRO="ప్రస్తుత పంపిణీ"
+        MSG_MISSING="లేదు"
+        MSG_RUN_INSTALL="ఇన్‌స్టాల్ చేయడానికి క్రింది ఆదేశాన్ని అమలు చేయండి:"
+        MSG_UNKNOWN_OS="ప్రస్తుత పంపిణీ గుర్తించబడలేదు, దయచేసి లేని సాధనాలను మాన్యువల్‌గా ఇన్‌స్టాల్ చేయండి"
+        MSG_AFTER_INSTALL="ఇన్‌స్టాలేషన్ తర్వాత, దయచేసి ఈ స్క్రిప్ట్‌ను మళ్లీ అమలు చేయండి."
+        MSG_DOWNLOAD_FAILED="డౌన్‌లోడ్ విఫలమైంది"
+        MSG_EXTRACT_FAILED="విస్తరణ విఫలమైంది"
+        MSG_TRY_GNU="gnu వెర్షన్‌ను సిద్ధం చేస్తోంది..."
+        MSG_TRY_MUSL="musl వెర్షన్‌ను సిద్ధం చేస్తోంది..."
+        MSG_GNU_SELECTED="ప్రస్తుతం gnu వెర్షన్ ఇన్‌స్టాల్ చేయబడుతోంది..."
+        MSG_MUSL_SELECTED="ప్రస్తుతం musl వెర్షన్ ఇన్‌స్టాల్ చేయబడుతోంది..."
+        MSG_FALLBACK_MUSL="gnu వెర్షన్ అందుబాటులో లేదు, musl వెర్షన్‌కు తిరిగి వెళ్తోంది..."
+        MSG_BOTH_FAILED="లోపం: gnu లేదా musl వెర్షన్ ప్రస్తుత సిస్టమ్‌లో ఇన్‌స్టాల్ చేయబడదు.\nసాధ్యమయ్యే కారణాలు: పంపిణీ/ఆర్కిటెక్చర్ ఇంకా మద్దతు లేదు లేదా musl వెర్షన్ ఈ ప్లాట్‌ఫారమ్ కోసం కంపైల్ చేయబడలేదు.\nదయచేసి పైన ముద్రించిన సిస్టమ్ సమాచారంతో issue తెరవండి, తద్వారా డెవలపర్లు లేని ప్యాకేజీని జోడించగలరు."
+        ;;
+    ml_IN)
+        MSG_INSTALL="safe-rm ഇൻസ്റ്റാൾ ചെയ്യുന്നു"
+        MSG_DONE="ഇൻസ്റ്റാളേഷൻ പൂർത്തിയായി."
+        MSG_UNINSTALL="safe-rm നീക്കം ചെയ്യുന്നു..."
+        MSG_UNINSTALLED="നീക്കം പൂർത്തിയായി."
+        MSG_RELOGIN="വീണ്ടും ലോഗിൻ ചെയ്യുക, അല്ലെങ്കിൽ പ്രവർത്തിപ്പിക്കുക:"
+        MSG_TEST="പരിശോധന:"
+        MSG_NOT_ROOT="പിശക്: root ആവശ്യമാണ്. sudo ഉപയോഗിച്ച് പ്രവർത്തിപ്പിക്കുക."
+        MSG_NO_FILE="പിശക്: നിലവിലെ ഡയറക്ടറിയിൽ ഇല്ല"
+        MSG_ALREADY="safe-rm ഇതിനകം ഇൻസ്റ്റാൾ ചെയ്തിട്ടുണ്ട്"
+        MSG_UNINSTALL_HINT="നീക്കം ചെയ്യാൻ പ്രവർത്തിപ്പിക്കുക:"
+        MSG_PATH_SETUP="PATH ക്രമീകരണം:"
+        MSG_PATH_STANDARD="സ്റ്റാൻഡേർഡ്:"
+        MSG_PATH_OVERRIDE="shell PATH മാറ്റിസ്ഥാപിക്കുകയാണെങ്കിൽ shell കോൺഫിഗറേഷനിൽ ചേർക്കുക:"
+        MSG_UPDATE_TITLE="സംരക്ഷണ പട്ടിക അപ്ഡേറ്റ് ചെയ്യുക:"
+        MSG_UPDATE_CONF="$SYSCONFDIR/safe-rm.conf അപ്ഡേറ്റ് ചെയ്യുക"
+        MSG_UPDATE_DESC="കുറിപ്പ്: സ്ഥിരസ്ഥിതി സംരക്ഷിത പാതകൾ വിതരണങ്ങൾക്കിടയിൽ വ്യത്യാസപ്പെടുന്നു.\nഉൾപ്പെടുത്തിയ safe-rm.conf ഒരു പൊതു സ്ഥിരസ്ഥിതി മൂല്യമാണ്, കൂടാതെ\nനിങ്ങളുടെ സിസ്റ്റവുമായി പൂർണ്ണമായി പൊരുത്തപ്പെടണമെന്നില്ല.\nനിലവിലെ സിസ്റ്റത്തിന് ഏറ്റവും അനുയോജ്യമായ സംരക്ഷണ പട്ടിക\nസൃഷ്ടിക്കാൻ update-safe-rm പ്രവർത്തിപ്പിക്കാൻ ശുപാർശ ചെയ്യുന്നു."
+        MSG_HOMEPAGE="പ്രോജക്റ്റ് ഹോംപേജ്:"
+        MSG_INSTALLED_FILES="ഇൻസ്റ്റാൾ ചെയ്ത ഫയലുകൾ:"
+        MSG_DOWNLOADING="ഡൗൺലോഡ് ചെയ്യുന്നു..."
+        MSG_EXTRACTING="വേർതിരിക്കുന്നു..."
+        MSG_UNSUPPORTED="പിന്തുണയ്ക്കുന്നില്ല:"
+        MSG_NEED_TOOLS="പിശക്: ആവശ്യമായ ഉപകരണങ്ങൾ ഇല്ല."
+        MSG_CURRENT_DISTRO="നിലവിലെ വിതരണം"
+        MSG_MISSING="ഇല്ല"
+        MSG_RUN_INSTALL="ഇൻസ്റ്റാൾ ചെയ്യാൻ ഇനിപ്പറയുന്ന കമാൻഡ് പ്രവർത്തിപ്പിക്കുക:"
+        MSG_UNKNOWN_OS="നിലവിലെ വിതരണം തിരിച്ചറിഞ്ഞില്ല, ദയവായി കാണാത്ത ഉപകരണങ്ങൾ സ്വമേധയാ ഇൻസ്റ്റാൾ ചെയ്യുക"
+        MSG_AFTER_INSTALL="ഇൻസ്റ്റാളേഷന് ശേഷം, ഈ സ്ക്രിപ്റ്റ് വീണ്ടും പ്രവർത്തിപ്പിക്കുക."
+        MSG_DOWNLOAD_FAILED="ഡൗൺലോഡ് പരാജയപ്പെട്ടു"
+        MSG_EXTRACT_FAILED="വേർതിരിക്കൽ പരാജയപ്പെട്ടു"
+        MSG_TRY_GNU="gnu പതിപ്പ് തയ്യാറാക്കുന്നു..."
+        MSG_TRY_MUSL="musl പതിപ്പ് തയ്യാറാക്കുന്നു..."
+        MSG_GNU_SELECTED="നിലവിൽ gnu പതിപ്പ് ഇൻസ്റ്റാൾ ചെയ്യുന്നു..."
+        MSG_MUSL_SELECTED="നിലവിൽ musl പതിപ്പ് ഇൻസ്റ്റാൾ ചെയ്യുന്നു..."
+        MSG_FALLBACK_MUSL="gnu പതിപ്പ് ലഭ്യമല്ല, musl പതിപ്പിലേക്ക് മടങ്ങുന്നു..."
+        MSG_BOTH_FAILED="പിശക്: gnu അല്ലെങ്കിൽ musl പതിപ്പ് നിലവിലെ സിസ്റ്റത്തിൽ ഇൻസ്റ്റാൾ ചെയ്യാൻ കഴിയില്ല.\nസാധ്യമായ കാരണങ്ങൾ: വിതരണം/ആർക്കിടെക്ചർ ഇതുവരെ പിന്തുണയ്ക്കുന്നില്ല അല്ലെങ്കിൽ musl പതിപ്പ് ഈ പ്ലാറ്റ്ഫോമിനായി കംപൈൽ ചെയ്തിട്ടില്ല.\nമുകളിൽ പ്രിന്റ് ചെയ്ത സിസ്റ്റം വിവരങ്ങൾ ഉൾപ്പെടുത്തി issue തുറക്കുക, അതുവഴി ഡെവലപ്പർമാർക്ക് കാണാത്ത പാക്കേജ് ചേർക്കാൻ കഴിയും."
+        ;;
+    kn_IN)
+        MSG_INSTALL="safe-rm ಅನ್ನು ಸ್ಥಾಪಿಸಲಾಗುತ್ತಿದೆ"
+        MSG_DONE="ಸ್ಥಾಪನೆ ಪೂರ್ಣಗೊಂಡಿದೆ."
+        MSG_UNINSTALL="safe-rm ಅನ್ನು ತೆಗೆದುಹಾಕಲಾಗುತ್ತಿದೆ..."
+        MSG_UNINSTALLED="ತೆಗೆದುಹಾಕುವಿಕೆ ಪೂರ್ಣಗೊಂಡಿದೆ."
+        MSG_RELOGIN="ದಯವಿಟ್ಟು ಮತ್ತೆ ಲಾಗಿನ್ ಆಗಿ ಅಥವಾ ಚಲಾಯಿಸಿ:"
+        MSG_TEST="ಪರೀಕ್ಷೆ:"
+        MSG_NOT_ROOT="ದೋಷ: root ಅಗತ್ಯವಿದೆ. sudo ನೊಂದಿಗೆ ಚಲಾಯಿಸಿ."
+        MSG_NO_FILE="ದೋಷ: ಪ್ರಸ್ತುತ ಡೈರೆಕ್ಟರಿಯಲ್ಲಿ ಇಲ್ಲ"
+        MSG_ALREADY="safe-rm ಈಗಾಗಲೇ ಸ್ಥಾಪಿಸಲಾಗಿದೆ"
+        MSG_UNINSTALL_HINT="ತೆಗೆದುಹಾಕಲು ಚಲಾಯಿಸಿ:"
+        MSG_PATH_SETUP="PATH ಸೆಟಪ್:"
+        MSG_PATH_STANDARD="ಪ್ರಮಾಣಿತ:"
+        MSG_PATH_OVERRIDE="shell PATH ಅನ್ನು ತಿದ್ದಿ ಬರೆಯುತ್ತಿದ್ದರೆ shell ಸಂರಚನೆಗೆ ಸೇರಿಸಿ:"
+        MSG_UPDATE_TITLE="ರಕ್ಷಣಾ ಪಟ್ಟಿಯನ್ನು ನವೀಕರಿಸಿ:"
+        MSG_UPDATE_CONF="$SYSCONFDIR/safe-rm.conf ಅನ್ನು ನವೀಕರಿಸಿ"
+        MSG_UPDATE_DESC="ಟಿಪ್ಪಣಿ: ಡಿಫಾಲ್ಟ್ ರಕ್ಷಿತ ಮಾರ್ಗಗಳು ವಿತರಣೆಗಳ ನಡುವೆ ಭಿನ್ನವಾಗಿರುತ್ತವೆ.\nಒಳಗೊಂಡ safe-rm.conf ಸಾಮಾನ್ಯ ಡಿಫಾಲ್ಟ್ ಮೌಲ್ಯವಾಗಿದೆ ಮತ್ತು\nನಿಮ್ಮ ಸಿಸ್ಟಂನೊಂದಿಗೆ ಸಂಪೂರ್ಣವಾಗಿ ಹೊಂದಿಕೆಯಾಗದಿರಬಹುದು.\nಪ್ರಸ್ತುತ ಸಿಸ್ಟಂಗೆ ಹೆಚ್ಚು ಸೂಕ್ತವಾದ ರಕ್ಷಣಾ ಪಟ್ಟಿಯನ್ನು\nರಚಿಸಲು update-safe-rm ಚಲಾಯಿಸಲು ಶಿಫಾರಸು ಮಾಡಲಾಗಿದೆ."
+        MSG_HOMEPAGE="ಯೋಜನೆಯ ಮುಖಪುಟ:"
+        MSG_INSTALLED_FILES="ಸ್ಥಾಪಿಸಿದ ಫೈಲ್‌ಗಳು:"
+        MSG_DOWNLOADING="ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ..."
+        MSG_EXTRACTING="ವಿಸ್ತರಿಸಲಾಗುತ್ತಿದೆ..."
+        MSG_UNSUPPORTED="ಬೆಂಬಲಿತವಲ್ಲ:"
+        MSG_NEED_TOOLS="ದೋಷ: ಅಗತ್ಯವಿರುವ ಸಾಧನಗಳು ಇಲ್ಲ."
+        MSG_CURRENT_DISTRO="ಪ್ರಸ್ತುತ ವಿತರಣೆ"
+        MSG_MISSING="ಇಲ್ಲ"
+        MSG_RUN_INSTALL="ಸ್ಥಾಪಿಸಲು ಈ ಕೆಳಗಿನ ಆದೇಶವನ್ನು ಚಲಾಯಿಸಿ:"
+        MSG_UNKNOWN_OS="ಪ್ರಸ್ತುತ ವಿತರಣೆಯನ್ನು ಗುರುತಿಸಲಾಗಲಿಲ್ಲ, ದಯವಿಟ್ಟು ಕಾಣೆಯಾದ ಸಾಧನಗಳನ್ನು ಹಸ್ತಚಾಲಿತವಾಗಿ ಸ್ಥಾಪಿಸಿ"
+        MSG_AFTER_INSTALL="ಸ್ಥಾಪನೆಯ ನಂತರ, ದಯವಿಟ್ಟು ಈ ಸ್ಕ್ರಿಪ್ಟ್ ಅನ್ನು ಮತ್ತೆ ಚಲಾಯಿಸಿ."
+        MSG_DOWNLOAD_FAILED="ಡೌನ್‌ಲೋಡ್ ವಿಫಲವಾಗಿದೆ"
+        MSG_EXTRACT_FAILED="ವಿಸ್ತರಣೆ ವಿಫಲವಾಗಿದೆ"
+        MSG_TRY_GNU="gnu ಆವೃತ್ತಿಯನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ..."
+        MSG_TRY_MUSL="musl ಆವೃತ್ತಿಯನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ..."
+        MSG_GNU_SELECTED="ಪ್ರಸ್ತುತ gnu ಆವೃತ್ತಿಯನ್ನು ಸ್ಥಾಪಿಸಲಾಗುತ್ತಿದೆ..."
+        MSG_MUSL_SELECTED="ಪ್ರಸ್ತುತ musl ಆವೃತ್ತಿಯನ್ನು ಸ್ಥಾಪಿಸಲಾಗುತ್ತಿದೆ..."
+        MSG_FALLBACK_MUSL="gnu ಆವೃತ್ತಿ ಲಭ್ಯವಿಲ್ಲ, musl ಆವೃತ್ತಿಗೆ ಹಿಂತಿರುಗುತ್ತಿದೆ..."
+        MSG_BOTH_FAILED="ದೋಷ: gnu ಅಥವಾ musl ಆವೃತ್ತಿಯನ್ನು ಪ್ರಸ್ತುತ ಸಿಸ್ಟಂನಲ್ಲಿ ಸ್ಥಾಪಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ.\nಸಂಭಾವ್ಯ ಕಾರಣಗಳು: ವಿತರಣೆ/ಆರ್ಕಿಟೆಕ್ಚರ್ ಇನ್ನೂ ಬೆಂಬಲಿತವಾಗಿಲ್ಲ ಅಥವಾ musl ಆವೃತ್ತಿಯನ್ನು ಈ ವೇದಿಕೆಗೆ ಕಂಪೈಲ್ ಮಾಡಲಾಗಿಲ್ಲ.\nದಯವಿಟ್ಟು ಮೇಲೆ ಮುದ್ರಿಸಲಾದ ಸಿಸ್ಟಂ ಮಾಹಿತಿಯೊಂದಿಗೆ issue ತೆರೆಯಿರಿ, ಇದರಿಂದ ಡೆವಲಪರ್‌ಗಳು ಕಾಣೆಯಾದ ಪ್ಯಾಕೇಜ್ ಅನ್ನು ಸೇರಿಸಬಹುದು."
+        ;;
+    mr_IN)
+        MSG_INSTALL="safe-rm इन्स्टॉल करत आहे"
+        MSG_DONE="इन्स्टॉलेशन पूर्ण झाले."
+        MSG_UNINSTALL="safe-rm काढत आहे..."
+        MSG_UNINSTALLED="काढणे पूर्ण झाले."
+        MSG_RELOGIN="कृपया पुन्हा लॉगिन करा किंवा चालवा:"
+        MSG_TEST="चाचणी:"
+        MSG_NOT_ROOT="त्रुटी: root आवश्यक. sudo ने चालवा."
+        MSG_NO_FILE="त्रुटी: सध्याच्या डिरेक्टरीमध्ये नाही"
+        MSG_ALREADY="safe-rm आधीच इन्स्टॉल केलेले आहे"
+        MSG_UNINSTALL_HINT="काढण्यासाठी चालवा:"
+        MSG_PATH_SETUP="PATH सेटअप:"
+        MSG_PATH_STANDARD="मानक:"
+        MSG_PATH_OVERRIDE="shell PATH ओव्हरराइड करत असल्यास shell कॉन्फिगमध्ये जोडा:"
+        MSG_UPDATE_TITLE="संरक्षण सूची अपडेट करा:"
+        MSG_UPDATE_CONF="$SYSCONFDIR/safe-rm.conf अपडेट करा"
+        MSG_UPDATE_DESC="टीप: डीफॉल्ट संरक्षित मार्ग वितरणांमध्ये भिन्न असतात.\nसमाविष्ट safe-rm.conf हे सामान्य डीफॉल्ट मूल्य आहे आणि\nतुमच्या सिस्टमशी पूर्णपणे जुळणार नाही.\nसध्याच्या सिस्टमसाठी सर्वात योग्य संरक्षण सूची\nतयार करण्यासाठी update-safe-rm चालविण्याची शिफारस केली जाते."
+        MSG_HOMEPAGE="प्रकल्प होमपेज:"
+        MSG_INSTALLED_FILES="इन्स्टॉल केलेल्या फाइल्स:"
+        MSG_DOWNLOADING="डाउनलोड करत आहे..."
+        MSG_EXTRACTING="एक्सट्रॅक्ट करत आहे..."
+        MSG_UNSUPPORTED="असमर्थित:"
+        MSG_NEED_TOOLS="त्रुटी: आवश्यक साधने नाहीत."
+        MSG_CURRENT_DISTRO="सध्याचे वितरण"
+        MSG_MISSING="नाही"
+        MSG_RUN_INSTALL="इन्स्टॉल करण्यासाठी खालील कमांड चालवा:"
+        MSG_UNKNOWN_OS="सध्याचे वितरण ओळखले जाऊ शकले नाही, कृपया गहाळ साधने स्वतः इन्स्टॉल करा"
+        MSG_AFTER_INSTALL="इन्स्टॉलेशननंतर, कृपया ही स्क्रिप्ट पुन्हा चालवा."
+        MSG_DOWNLOAD_FAILED="डाउनलोड अयशस्वी"
+        MSG_EXTRACT_FAILED="एक्सट्रॅक्शन अयशस्वी"
+        MSG_TRY_GNU="gnu आवृत्ती तयार करत आहे..."
+        MSG_TRY_MUSL="musl आवृत्ती तयार करत आहे..."
+        MSG_GNU_SELECTED="सध्या gnu आवृत्ती इन्स्टॉल करत आहे..."
+        MSG_MUSL_SELECTED="सध्या musl आवृत्ती इन्स्टॉल करत आहे..."
+        MSG_FALLBACK_MUSL="gnu आवृत्ती उपलब्ध नाही, musl आवृत्तीवर परत जात आहे..."
+        MSG_BOTH_FAILED="त्रुटी: gnu किंवा musl आवृत्ती सध्याच्या सिस्टमवर इन्स्टॉल करता येत नाही.\nसंभाव्य कारणे: वितरण/आर्किटेक्चर अद्याप समर्थित नाही किंवा musl आवृत्ती या प्लॅटफॉर्मसाठी कंपाइल केलेली नाही.\nकृपया वर मुद्रित सिस्टम माहितीसह issue उघडा, जेणेकरून विकसक गहाळ पॅकेज जोडू शकतील."
+        ;;
+    gu_IN)
+        MSG_INSTALL="safe-rm ને ઇન્સ્ટોલ કરી રહ્યું છે"
+        MSG_DONE="ઇન્સ્ટોલેશન પૂર્ણ થયું."
+        MSG_UNINSTALL="safe-rm ને દૂર કરી રહ્યું છે..."
+        MSG_UNINSTALLED="દૂર કરવાનું પૂર્ણ થયું."
+        MSG_RELOGIN="કૃપા કરીને ફરી લોગિન કરો, અથવા ચલાવો:"
+        MSG_TEST="પરીક્ષણ:"
+        MSG_NOT_ROOT="ભૂલ: root જરૂરી. sudo સાથે ચલાવો."
+        MSG_NO_FILE="ભૂલ: વર્તમાન ડિરેક્ટરીમાં નથી"
+        MSG_ALREADY="safe-rm પહેલેથી ઇન્સ્ટોલ કરેલું છે"
+        MSG_UNINSTALL_HINT="દૂર કરવા માટે ચલાવો:"
+        MSG_PATH_SETUP="PATH સેટઅપ:"
+        MSG_PATH_STANDARD="પ્રમાણભૂત:"
+        MSG_PATH_OVERRIDE="જો shell PATH ને ઓવરરાઇડ કરે તો shell કન્ફિગમાં ઉમેરો:"
+        MSG_UPDATE_TITLE="સુરક્ષા સૂચિ અપડેટ કરો:"
+        MSG_UPDATE_CONF="$SYSCONFDIR/safe-rm.conf અપડેટ કરો"
+        MSG_UPDATE_DESC="નોંધ: ડિફોલ્ટ સુરક્ષિત પાથ વિતરણો વચ્ચે અલગ પડે છે.\nસમાવિષ્ટ safe-rm.conf એ સામાન્ય ડિફોલ્ટ મૂલ્ય છે અને\nતમારી સિસ્ટમ સાથે સંપૂર્ણપણે મેળ ન ખાઈ શકે.\nવર્તમાન સિસ્ટમ માટે સૌથી યોગ્ય સુરક્ષા સૂચિ\nબનાવવા માટે update-safe-rm ચલાવવાની સલાહ આપવામાં આવે છે."
+        MSG_HOMEPAGE="પ્રોજેક્ટ હોમપેજ:"
+        MSG_INSTALLED_FILES="ઇન્સ્ટોલ કરેલી ફાઇલો:"
+        MSG_DOWNLOADING="ડાઉનલોડ કરી રહ્યું છે..."
+        MSG_EXTRACTING="એક્સટ્રેક્ટ કરી રહ્યું છે..."
+        MSG_UNSUPPORTED="અસમર્થિત:"
+        MSG_NEED_TOOLS="ભૂલ: જરૂરી સાધનો ગુમ છે."
+        MSG_CURRENT_DISTRO="વર્તમાન વિતરણ"
+        MSG_MISSING="ગુમ"
+        MSG_RUN_INSTALL="ઇન્સ્ટોલ કરવા માટે નીચેનો આદેશ ચલાવો:"
+        MSG_UNKNOWN_OS="વર્તમાન વિતરણ ઓળખી શકાયું નથી, કૃપા કરીને ગુમ સાધનો જાતે ઇન્સ્ટોલ કરો"
+        MSG_AFTER_INSTALL="ઇન્સ્ટોલેશન પછી, કૃપા કરીને આ સ્ક્રિપ્ટ ફરી ચલાવો."
+        MSG_DOWNLOAD_FAILED="ડાઉનલોડ નિષ્ફળ"
+        MSG_EXTRACT_FAILED="એક્સટ્રેક્શન નિષ્ફળ"
+        MSG_TRY_GNU="gnu આવૃત્તિ તૈયાર કરી રહ્યું છે..."
+        MSG_TRY_MUSL="musl આવૃત્તિ તૈયાર કરી રહ્યું છે..."
+        MSG_GNU_SELECTED="હાલમાં gnu આવૃત્તિ ઇન્સ્ટોલ થઈ રહી છે..."
+        MSG_MUSL_SELECTED="હાલમાં musl આવૃત્તિ ઇન્સ્ટોલ થઈ રહી છે..."
+        MSG_FALLBACK_MUSL="gnu આવૃત્તિ ઉપલબ્ધ નથી, musl આવૃત્તિ પર પાછા જઈ રહ્યું છે..."
+        MSG_BOTH_FAILED="ભૂલ: gnu અથવા musl આવૃત્તિ વર્તમાન સિસ્ટમ પર ઇન્સ્ટોલ કરી શકાતી નથી.\nસંભવિત કારણો: વિતરણ/આર્કિટેક્ચર હજી સમર્થિત નથી અથવા musl આવૃત્તિ આ પ્લેટફોર્મ માટે કમ્પાઇલ કરેલી નથી.\nકૃપા કરીને ઉપર છાપેલી સિસ્ટમ માહિતી સાથે issue ખોલો, જેથી ડેવલપર્સ ગુમ પેકેજ ઉમેરી શકે."
+        ;;
+    pa_IN)
+        MSG_INSTALL="safe-rm ਨੂੰ ਸਥਾਪਿਤ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ"
+        MSG_DONE="ਸਥਾਪਨਾ ਪੂਰੀ ਹੋਈ।"
+        MSG_UNINSTALL="safe-rm ਨੂੰ ਹਟਾਇਆ ਜਾ ਰਿਹਾ ਹੈ..."
+        MSG_UNINSTALLED="ਹਟਾਉਣਾ ਪੂਰਾ ਹੋਇਆ।"
+        MSG_RELOGIN="ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਲੌਗਇਨ ਕਰੋ, ਜਾਂ ਚਲਾਓ:"
+        MSG_TEST="ਟੈਸਟ:"
+        MSG_NOT_ROOT="ਗਲਤੀ: root ਲੋੜੀਂਦਾ ਹੈ। sudo ਨਾਲ ਚਲਾਓ।"
+        MSG_NO_FILE="ਗਲਤੀ: ਮੌਜੂਦਾ ਡਾਇਰੈਕਟਰੀ ਵਿੱਚ ਨਹੀਂ ਹੈ"
+        MSG_ALREADY="safe-rm ਪਹਿਲਾਂ ਹੀ ਸਥਾਪਿਤ ਹੈ"
+        MSG_UNINSTALL_HINT="ਹਟਾਉਣ ਲਈ ਚਲਾਓ:"
+        MSG_PATH_SETUP="PATH ਸੈੱਟਅੱਪ:"
+        MSG_PATH_STANDARD="ਮਿਆਰੀ:"
+        MSG_PATH_OVERRIDE="ਜੇ shell PATH ਨੂੰ ਓਵਰਰਾਈਡ ਕਰਦਾ ਹੈ, shell ਕਨਫਿਗ ਵਿੱਚ ਸ਼ਾਮਲ ਕਰੋ:"
+        MSG_UPDATE_TITLE="ਸੁਰੱਖਿਆ ਸੂਚੀ ਨੂੰ ਅੱਪਡੇਟ ਕਰੋ:"
+        MSG_UPDATE_CONF="$SYSCONFDIR/safe-rm.conf ਨੂੰ ਅੱਪਡੇਟ ਕਰੋ"
+        MSG_UPDATE_DESC="ਨੋਟ: ਡਿਫਾਲਟ ਸੁਰੱਖਿਅਤ ਮਾਰਗ ਵੰਡਾਂ ਵਿੱਚ ਵੱਖਰੇ ਹੁੰਦੇ ਹਨ।\nਸ਼ਾਮਲ safe-rm.conf ਇੱਕ ਆਮ ਡਿਫਾਲਟ ਮੁੱਲ ਹੈ ਅਤੇ\nਤੁਹਾਡੇ ਸਿਸਟਮ ਨਾਲ ਪੂਰੀ ਤਰ੍ਹਾਂ ਮੇਲ ਨਹੀਂ ਖਾ ਸਕਦਾ।\nਮੌਜੂਦਾ ਸਿਸਟਮ ਲਈ ਸਭ ਤੋਂ ਢੁਕਵੀਂ ਸੁਰੱਖਿਆ ਸੂਚੀ\nਬਣਾਉਣ ਲਈ update-safe-rm ਚਲਾਉਣ ਦੀ ਸਿਫਾਰਸ਼ ਕੀਤੀ ਜਾਂਦੀ ਹੈ।"
+        MSG_HOMEPAGE="ਪ੍ਰੋਜੈਕਟ ਹੋਮਪੇਜ:"
+        MSG_INSTALLED_FILES="ਸਥਾਪਿਤ ਫਾਈਲਾਂ:"
+        MSG_DOWNLOADING="ਡਾਊਨਲੋਡ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ..."
+        MSG_EXTRACTING="ਐਕਸਟਰੈਕਟ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ..."
+        MSG_UNSUPPORTED="ਅਸਮਰਥਿਤ:"
+        MSG_NEED_TOOLS="ਗਲਤੀ: ਲੋੜੀਂਦੇ ਸਾਧਨ ਗੁੰਮ ਹਨ।"
+        MSG_CURRENT_DISTRO="ਮੌਜੂਦਾ ਵੰਡ"
+        MSG_MISSING="ਗੁੰਮ"
+        MSG_RUN_INSTALL="ਸਥਾਪਿਤ ਕਰਨ ਲਈ ਹੇਠਾਂ ਦਿੱਤੀ ਕਮਾਂਡ ਚਲਾਓ:"
+        MSG_UNKNOWN_OS="ਮੌਜੂਦਾ ਵੰਡ ਪਛਾਣੀ ਨਹੀਂ ਜਾ ਸਕੀ, ਕਿਰਪਾ ਕਰਕੇ ਗੁੰਮ ਸਾਧਨ ਖੁਦ ਸਥਾਪਿਤ ਕਰੋ"
+        MSG_AFTER_INSTALL="ਸਥਾਪਨਾ ਤੋਂ ਬਾਅਦ, ਕਿਰਪਾ ਕਰਕੇ ਇਸ ਸਕ੍ਰਿਪਟ ਨੂੰ ਦੁਬਾਰਾ ਚਲਾਓ।"
+        MSG_DOWNLOAD_FAILED="ਡਾਊਨਲੋਡ ਅਸਫਲ"
+        MSG_EXTRACT_FAILED="ਐਕਸਟਰੈਕਸ਼ਨ ਅਸਫਲ"
+        MSG_TRY_GNU="gnu ਵਰਜਨ ਤਿਆਰ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ..."
+        MSG_TRY_MUSL="musl ਵਰਜਨ ਤਿਆਰ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ..."
+        MSG_GNU_SELECTED="ਇਸ ਵੇਲੇ gnu ਵਰਜਨ ਸਥਾਪਿਤ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ..."
+        MSG_MUSL_SELECTED="ਇਸ ਵੇਲੇ musl ਵਰਜਨ ਸਥਾਪਿਤ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ..."
+        MSG_FALLBACK_MUSL="gnu ਵਰਜਨ ਉਪਲਬਧ ਨਹੀਂ ਹੈ, musl ਵਰਜਨ 'ਤੇ ਵਾਪਸ ਜਾ ਰਿਹਾ ਹੈ..."
+        MSG_BOTH_FAILED="ਗਲਤੀ: gnu ਜਾਂ musl ਵਰਜਨ ਮੌਜੂਦਾ ਸਿਸਟਮ 'ਤੇ ਸਥਾਪਿਤ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ।\nਸੰਭਾਵੀ ਕਾਰਨ: ਵੰਡ/ਆਰਕੀਟੈਕਚਰ ਅਜੇ ਸਮਰਥਿਤ ਨਹੀਂ ਹੈ ਜਾਂ musl ਵਰਜਨ ਇਸ ਪਲੇਟਫਾਰਮ ਲਈ ਕੰਪਾਇਲ ਨਹੀਂ ਕੀਤਾ ਗਿਆ।\nਕਿਰਪਾ ਕਰਕੇ ਉੱਪਰ ਛਾਪੀ ਸਿਸਟਮ ਜਾਣਕਾਰੀ ਨਾਲ issue ਖੋਲ੍ਹੋ, ਤਾਂ ਜੋ ਡਿਵੈਲਪਰ ਗੁੰਮ ਪੈਕੇਜ ਸ਼ਾਮਲ ਕਰ ਸਕਣ।"
+        ;;
+    ur_PK)
+        MSG_INSTALL="safe-rm انسٹال کیا جا رہا ہے"
+        MSG_DONE="انسٹالیشن مکمل ہو گئی۔"
+        MSG_UNINSTALL="safe-rm کو ہٹایا جا رہا ہے..."
+        MSG_UNINSTALLED="ہٹانا مکمل ہو گیا۔"
+        MSG_RELOGIN="براہ کرم دوبارہ لاگ ان کریں، یا چلائیں:"
+        MSG_TEST="ٹیسٹ:"
+        MSG_NOT_ROOT="خرابی: root درکار ہے۔ sudo کے ساتھ چلائیں۔"
+        MSG_NO_FILE="خرابی: موجودہ ڈائریکٹری میں نہیں ہے"
+        MSG_ALREADY="safe-rm پہلے ہی انسٹال ہے"
+        MSG_UNINSTALL_HINT="ہٹانے کے لیے چلائیں:"
+        MSG_PATH_SETUP="PATH سیٹ اپ:"
+        MSG_PATH_STANDARD="معیاری:"
+        MSG_PATH_OVERRIDE="اگر shell PATH کو اوور رائیڈ کرتا ہے تو shell کنفیگ میں شامل کریں:"
+        MSG_UPDATE_TITLE="تحفظ کی فہرست اپ ڈیٹ کریں:"
+        MSG_UPDATE_CONF="$SYSCONFDIR/safe-rm.conf کو اپ ڈیٹ کریں"
+        MSG_UPDATE_DESC="نوٹ: ڈیفالٹ محفوظ راستے تقسیم کے لحاظ سے مختلف ہوتے ہیں۔\nشامل safe-rm.conf ایک عام ڈیفالٹ قدر ہے اور\nآپ کے سسٹم سے مکمل طور پر مطابقت نہیں رکھ سکتا۔\nموجودہ سسٹم کے لیے سب سے موزوں تحفظ کی فہرست\nبنانے کے لیے update-safe-rm چلانے کی سفارش کی جاتی ہے۔"
+        MSG_HOMEPAGE="پروجیکٹ ہوم پیج:"
+        MSG_INSTALLED_FILES="انسٹال شدہ فائلیں:"
+        MSG_DOWNLOADING="ڈاؤن لوڈ ہو رہا ہے..."
+        MSG_EXTRACTING="ایکسٹریکٹ ہو رہا ہے..."
+        MSG_UNSUPPORTED="غیر معاون:"
+        MSG_NEED_TOOLS="خرابی: ضروری اوزار موجود نہیں ہیں۔"
+        MSG_CURRENT_DISTRO="موجودہ تقسیم"
+        MSG_MISSING="موجود نہیں"
+        MSG_RUN_INSTALL="انسٹال کرنے کے لیے درج ذیل کمانڈ چلائیں:"
+        MSG_UNKNOWN_OS="موجودہ تقسیم کی شناخت نہیں ہو سکی، براہ کرم غائب اوزار دستی طور پر انسٹال کریں"
+        MSG_AFTER_INSTALL="انسٹالیشن کے بعد، براہ کرم یہ اسکرپٹ دوبارہ چلائیں۔"
+        MSG_DOWNLOAD_FAILED="ڈاؤن لوڈ ناکام"
+        MSG_EXTRACT_FAILED="ایکسٹریکشن ناکام"
+        MSG_TRY_GNU="gnu ورژن تیار کیا جا رہا ہے..."
+        MSG_TRY_MUSL="musl ورژن تیار کیا جا رہا ہے..."
+        MSG_GNU_SELECTED="فی الوقت gnu ورژن انسٹال کیا جا رہا ہے..."
+        MSG_MUSL_SELECTED="فی الوقت musl ورژن انسٹال کیا جا رہا ہے..."
+        MSG_FALLBACK_MUSL="gnu ورژن دستیاب نہیں، musl ورژن پر واپس جا رہا ہے..."
+        MSG_BOTH_FAILED="خرابی: gnu یا musl ورژن موجودہ سسٹم پر انسٹال نہیں کیا جا سکتا۔\nممکنہ وجوہات: تقسیم/آرکیٹیکچر ابھی تک معاون نہیں یا musl ورژن اس پلیٹ فارم کے لیے کمپائل نہیں کیا گیا۔\nبراہ کرم اوپر پرنٹ شدہ سسٹم معلومات کے ساتھ issue کھولیں، تاکہ ڈویلپرز غائب پیکج شامل کر سکیں۔"
+        ;;
+    sw_KE)
+        MSG_INSTALL="Inasakinisha safe-rm kwenye"
+        MSG_DONE="Usakinishaji umekamilika."
+        MSG_UNINSTALL="Inaondoa safe-rm..."
+        MSG_UNINSTALLED="Uondoaji umekamilika."
+        MSG_RELOGIN="Tafadhali ingia tena, au endesha:"
+        MSG_TEST="Jaribio:"
+        MSG_NOT_ROOT="Hitilafu: root inahitajika. Endesha kwa sudo."
+        MSG_NO_FILE="Hitilafu: haipo kwenye saraka ya sasa"
+        MSG_ALREADY="safe-rm tayari imesakinishwa"
+        MSG_UNINSTALL_HINT="Kuondoa, endesha:"
+        MSG_PATH_SETUP="Mpangilio wa PATH:"
+        MSG_PATH_STANDARD="Kawaida:"
+        MSG_PATH_OVERRIDE="Ikiwa shell inabatilisha PATH, ongeza kwenye usanidi wa shell:"
+        MSG_UPDATE_TITLE="Sasisha orodha ya ulinzi:"
+        MSG_UPDATE_CONF="sasisha $SYSCONFDIR/safe-rm.conf"
+        MSG_UPDATE_DESC="Kumbuka: njia za ulinzi chaguo-msingi zinatofautiana kati ya usambazaji.\nsafe-rm.conf iliyojumuishwa ni thamani ya jumla chaguo-msingi na\ninaweza isilingane kabisa na mfumo wako.\nInashauriwa kuendesha update-safe-rm ili kuzalisha\norodha ya ulinzi inayofaa zaidi kwa mfumo wa sasa."
+        MSG_HOMEPAGE="Ukurasa wa mradi:"
+        MSG_INSTALLED_FILES="Faili zilizosakinishwa:"
+        MSG_DOWNLOADING="Inapakua..."
+        MSG_EXTRACTING="Inatoa..."
+        MSG_UNSUPPORTED="Haitumiki:"
+        MSG_NEED_TOOLS="Hitilafu: zana zinazohitajika hazipo."
+        MSG_CURRENT_DISTRO="Usambazaji wa sasa"
+        MSG_MISSING="Haipo"
+        MSG_RUN_INSTALL="Tafadhali endesha amri ifuatayo kusakinisha:"
+        MSG_UNKNOWN_OS="Usambazaji wa sasa haukutambuliwa, tafadhali sakinisha zana zinazokosekana kwa mkono"
+        MSG_AFTER_INSTALL="Baada ya usakinishaji, tafadhali endesha tena script hii."
+        MSG_DOWNLOAD_FAILED="Upakuaji umeshindikana"
+        MSG_EXTRACT_FAILED="Utoaji umeshindikana"
+        MSG_TRY_GNU="Inaandaa toleo la gnu..."
+        MSG_TRY_MUSL="Inaandaa toleo la musl..."
+        MSG_GNU_SELECTED="Kwa sasa inasakinisha toleo la gnu..."
+        MSG_MUSL_SELECTED="Kwa sasa inasakinisha toleo la musl..."
+        MSG_FALLBACK_MUSL="Toleo la gnu halipatikani, inarudi kwenye toleo la musl..."
+        MSG_BOTH_FAILED="Hitilafu: wala toleo la gnu wala musl haliwezi kusakinishwa kwenye mfumo wa sasa.\nSababu zinazowezekana: usambazaji/usanifu bado hautumiki au toleo la musl halijakusanywa kwa jukwaa hili.\nTafadhali fungua issue ukiambatanisha maelezo ya mfumo yaliyochapishwa hapo juu ili wasanidi waweze kuongeza kifurushi kinachokosekana."
+        ;;
+    am_ET)
+        MSG_INSTALL="safe-rm ን በመጫን ላይ"
+        MSG_DONE="ጭነት ተጠናቅቋል።"
+        MSG_UNINSTALL="safe-rm ን በማስወገድ ላይ..."
+        MSG_UNINSTALLED="ማስወገድ ተጠናቅቋል።"
+        MSG_RELOGIN="እባክዎ እንደገና ይግቡ ወይም ያሂዱ፡"
+        MSG_TEST="ሙከራ፡"
+        MSG_NOT_ROOT="ስህተት፡ root ያስፈልጋል። በ sudo ያሂዱ።"
+        MSG_NO_FILE="ስህተት፡ በአሁኑ ማውጫ ውስጥ የለም"
+        MSG_ALREADY="safe-rm አስቀድሞ ተጭኗል"
+        MSG_UNINSTALL_HINT="ለማስወገድ ያሂዱ፡"
+        MSG_PATH_SETUP="PATH ማዋቀሪያ፡"
+        MSG_PATH_STANDARD="መደበኛ፡"
+        MSG_PATH_OVERRIDE="shell ከ PATH በላይ ከጻፈ shell ማዋቀሪያ ላይ ያክሉ፡"
+        MSG_UPDATE_TITLE="የመከላከያ ዝርዝርን ያዘምኑ፡"
+        MSG_UPDATE_CONF="$SYSCONFDIR/safe-rm.conf ን ያዘምኑ"
+        MSG_UPDATE_DESC="ማስታወሻ፡ ነባሪ የተጠበቁ መንገዶች በስርጭቶች መካከል ይለያያሉ።\nየተካተተው safe-rm.conf አጠቃላይ ነባሪ እሴት ነው እና\nከስርዓትዎ ጋር ሙሉ በሙሉ ላይጣጣም ይችላል።\nለአሁኑ ስርዓት በጣም ተስማሚ የሆነውን የመከላከያ ዝርዝር\nለማመንጨት update-safe-rm ን ማስኬድ ይመከራል።"
+        MSG_HOMEPAGE="የፕሮጀክት መነሻ ገጽ፡"
+        MSG_INSTALLED_FILES="የተጫኑ ፋይሎች፡"
+        MSG_DOWNLOADING="በማውረድ ላይ..."
+        MSG_EXTRACTING="በማውጣት ላይ..."
+        MSG_UNSUPPORTED="ያልተደገፈ፡"
+        MSG_NEED_TOOLS="ስህተት፡ አስፈላጊ መሳሪያዎች የሉም።"
+        MSG_CURRENT_DISTRO="የአሁኑ ስርጭት"
+        MSG_MISSING="የለም"
+        MSG_RUN_INSTALL="ለመጫን የሚከተለውን ትዕዛዝ ያሂዱ፡"
+        MSG_UNKNOWN_OS="የአሁኑ ስርጭት ሊታወቅ አልቻለም፣ እባክዎ የጎደሉትን መሳሪያዎች በእጅ ይጫኑ"
+        MSG_AFTER_INSTALL="ከመጫን በኋላ፣ እባክዎ ይህን ስክሪፕት እንደገና ያሂዱ።"
+        MSG_DOWNLOAD_FAILED="ማውረድ አልተሳካም"
+        MSG_EXTRACT_FAILED="ማውጣት አልተሳካም"
+        MSG_TRY_GNU="gnu ስሪትን በማዘጋጀት ላይ..."
+        MSG_TRY_MUSL="musl ስሪትን በማዘጋጀት ላይ..."
+        MSG_GNU_SELECTED="በአሁኑ ጊዜ gnu ስሪት በመጫን ላይ..."
+        MSG_MUSL_SELECTED="በአሁኑ ጊዜ musl ስሪት በመጫን ላይ..."
+        MSG_FALLBACK_MUSL="gnu ስሪት አይገኝም፣ ወደ musl ስሪት በመመለስ ላይ..."
+        MSG_BOTH_FAILED="ስህተት፡ gnu ወይም musl ስሪት በአሁኑ ስርዓት ላይ ሊጫን አይችልም።\nሊሆኑ የሚችሉ ምክንያቶች፡ ስርጭቱ/አርክቴክቸር ገና አልተደገፈም ወይም musl ስሪት ለዚህ መድረክ አልተቀናበረም።\nእባክዎ ከላይ የታተመውን የስርዓት መረጃ በማያያዝ issue ይክፈቱ፣ ይህም ገንቢዎች የጎደለውን ጥቅል እንዲጨምሩ ያስችላቸዋል።"
+        ;;
+    af_ZA)
+        MSG_INSTALL="Installeer safe-rm in"
+        MSG_DONE="Installasie voltooi."
+        MSG_UNINSTALL="Verwyder safe-rm..."
+        MSG_UNINSTALLED="Verwydering voltooi."
+        MSG_RELOGIN="Teken weer in, of voer uit:"
+        MSG_TEST="Toets:"
+        MSG_NOT_ROOT="Fout: root nodig. Voer uit met sudo."
+        MSG_NO_FILE="Fout: ontbreek in huidige gids"
+        MSG_ALREADY="safe-rm is reeds geïnstalleer"
+        MSG_UNINSTALL_HINT="Om te verwyder, voer uit:"
+        MSG_PATH_SETUP="PATH-opstelling:"
+        MSG_PATH_STANDARD="Standaard:"
+        MSG_PATH_OVERRIDE="As die skulp PATH oorheers, voeg by skulpkonfigurasie:"
+        MSG_UPDATE_TITLE="Dateer beskermingslys op:"
+        MSG_UPDATE_CONF="dateer $SYSCONFDIR/safe-rm.conf op"
+        MSG_UPDATE_DESC="Let op: verstek beskermde paaie verskil tussen verspreidings.\nDie meegeleverde safe-rm.conf is 'n algemene verstekwaarde en\nstem dalk nie heeltemal ooreen met jou stelsel nie.\nDit word aanbeveel om update-safe-rm uit te voer om\ndie mees geskikte beskermingslys vir die huidige stelsel te genereer."
+        MSG_HOMEPAGE="Projek-tuisblad:"
+        MSG_INSTALLED_FILES="Geïnstalleerde lêers:"
+        MSG_DOWNLOADING="Laai af..."
+        MSG_EXTRACTING="Pak uit..."
+        MSG_UNSUPPORTED="Nie ondersteun nie:"
+        MSG_NEED_TOOLS="Fout: vereiste gereedskap ontbreek."
+        MSG_CURRENT_DISTRO="Huidige verspreiding"
+        MSG_MISSING="Ontbreek"
+        MSG_RUN_INSTALL="Voer die volgende opdrag uit om te installeer:"
+        MSG_UNKNOWN_OS="Huidige verspreiding kon nie herken word nie, installeer asseblief ontbrekende gereedskap met die hand"
+        MSG_AFTER_INSTALL="Na installasie, voer asseblief hierdie skrip weer uit."
+        MSG_DOWNLOAD_FAILED="Aflaai het misluk"
+        MSG_EXTRACT_FAILED="Uitpak het misluk"
+        MSG_TRY_GNU="Berei gnu-weergawe voor..."
+        MSG_TRY_MUSL="Berei musl-weergawe voor..."
+        MSG_GNU_SELECTED="Installeer tans gnu-weergawe..."
+        MSG_MUSL_SELECTED="Installeer tans musl-weergawe..."
+        MSG_FALLBACK_MUSL="gnu-weergawe nie beskikbaar nie, val terug na musl-weergawe..."
+        MSG_BOTH_FAILED="Fout: nie die gnu- of musl-weergawe kan op die huidige stelsel geïnstalleer word nie.\nMoontlike redes: verspreiding/argitektuur word nog nie ondersteun nie, of musl-weergawe is nie vir hierdie platform gekompileer nie.\nMaak asseblief 'n issue oop met die stelselinligting hierbo gedruk, sodat ontwikkelaars die ontbrekende pakket kan byvoeg."
         ;;
     *)
         MSG_INSTALL="Installing safe-rm to"
@@ -944,13 +2411,23 @@ case "${LANG%%.*}" in
         MSG_EXTRACTING="Extracting..."
         MSG_UNSUPPORTED="Unsupported:"
         MSG_NEED_TOOLS="Error: missing required tools."
-        MSG_MANUAL_INSTALL="Please install the following tools manually and retry:"
+        MSG_CURRENT_DISTRO="Current distro"
+        MSG_MISSING="missing"
+        MSG_RUN_INSTALL="Please run the following command to install:"
+        MSG_UNKNOWN_OS="Current distro not recognized, please install missing tools manually"
+        MSG_AFTER_INSTALL="After installation, please re-run this script."
         MSG_DOWNLOAD_FAILED="Download failed"
         MSG_EXTRACT_FAILED="Extract failed"
+        MSG_TRY_GNU="Preparing gnu build..."
+        MSG_TRY_MUSL="Preparing musl build..."
+        MSG_GNU_SELECTED="Currently installing gnu build..."
+        MSG_MUSL_SELECTED="Currently installing musl build..."
+        MSG_FALLBACK_MUSL="gnu build unavailable, falling back to musl build..."
+        MSG_BOTH_FAILED="Error: neither the gnu nor the musl build can be installed on this system.\nPossible reasons: distro/architecture is not yet supported, or no musl build has been compiled for this platform.\nPlease open an issue and attach the system info printed above so the missing package can be added."
         ;;
 esac
 
-# Output helpers 
+# Output helpers
 error() {
     echo "${RED}${1}${NC}" >&2
     exit 1
@@ -964,14 +2441,14 @@ warn() {
     echo "${YELLOW}${1}${NC}"
 }
 
-# Root check 
+# Root check
 check_root() {
     if [ "$(id -u)" -ne 0 ]; then
         error "$MSG_NOT_ROOT"
     fi
 }
 
-# Local file check 
+# Local file check
 check_files() {
     for f in safe-rm safe-rm.conf safe-rm.sh update-safe-rm safe-rm.1; do
         if [ ! -f "$f" ]; then
@@ -980,7 +2457,7 @@ check_files() {
     done
 }
 
-# Already installed check 
+# Already installed check
 check_installed() {
     if [ -f "$BINDIR/safe-rm" ]; then
         warn "$MSG_ALREADY: $BINDIR/safe-rm"
@@ -991,7 +2468,53 @@ check_installed() {
     fi
 }
 
-# Online install: check required tools 
+print_system_info() {
+    echo "uname -s: $(uname -s)"
+    echo "uname -m: $(uname -m)"
+
+    if [ -f /proc/cpuinfo ]; then
+        echo "cpu: $(grep -m1 'model name\|cpu model\|Processor' /proc/cpuinfo | sed 's/.*: //')"
+    fi
+
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        echo "distro ID: $ID"
+        echo "distro name: ${PRETTY_NAME:-$NAME}"
+    elif [ -f /etc/redhat-release ]; then
+        echo "distro name: $(cat /etc/redhat-release)"
+    elif [ -f /etc/debian_version ]; then
+        echo "distro name: Debian $(cat /etc/debian_version)"
+    elif [ -f /etc/alpine-release ]; then
+        echo "distro name: Alpine $(cat /etc/alpine-release)"
+    elif [ -f /etc/arch-release ]; then
+        echo "distro name: Arch Linux"
+    elif [ -f /etc/gentoo-release ]; then
+        echo "distro name: $(cat /etc/gentoo-release)"
+    elif [ -f /etc/openwrt_release ]; then
+        . /etc/openwrt_release
+        echo "distro name: OpenWrt $DISTRIB_RELEASE"
+    elif command -v sw_vers >/dev/null 2>&1; then
+        echo "distro name: macOS $(sw_vers -productVersion)"
+    elif command -v freebsd-version >/dev/null 2>&1; then
+        echo "distro name: FreeBSD $(freebsd-version)"
+    elif [ "$(uname -s)" = "OpenBSD" ] || [ "$(uname -s)" = "NetBSD" ]; then
+        echo "distro name: $(uname -s) $(uname -r)"
+    elif [ -f /etc/release ]; then
+        echo "distro name: $(head -1 /etc/release)"
+    else
+        echo "distro name: $(uname -s) $(uname -r)"
+    fi
+
+    if command -v getconf >/dev/null 2>&1; then
+        echo "glibc: $(getconf GNU_LIBC_VERSION 2>/dev/null || echo 'n/a')"
+    elif command -v ldd >/dev/null 2>&1; then
+        echo "glibc: $(ldd --version 2>/dev/null | head -1)"
+    else
+        echo "glibc: n/a"
+    fi
+}
+
+# Online install: check required tools
 check_tools() {
     have_cmd() {
         command -v "$1" >/dev/null 2>&1
@@ -1013,25 +2536,103 @@ check_tools() {
         return 0
     fi
 
-    # Missing: tell the user to install manually
+    # Missing list
+    MISSING=""
+    [ -z "$DOWNLOAD" ] && MISSING="curl"
+    [ "$HAVE_TAR" -eq 0 ] && MISSING="${MISSING:+$MISSING }tar"
+
+    OS_ID=""
+    OS_LIKE=""
+    OS_NAME=""
+    INSTALL_CMD=""
+
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        OS_ID="$ID"
+        OS_LIKE="$ID_LIKE"
+        OS_NAME="${PRETTY_NAME:-$NAME}"
+    elif [ -f /etc/redhat-release ]; then
+        OS_ID="rhel"
+        OS_NAME="$(cat /etc/redhat-release)"
+    elif [ -f /etc/debian_version ]; then
+        OS_ID="debian"
+        OS_NAME="Debian $(cat /etc/debian_version)"
+    elif command -v freebsd-version >/dev/null 2>&1; then
+        OS_ID="freebsd"
+        OS_NAME="FreeBSD $(freebsd-version)"
+    elif command -v sw_vers >/dev/null 2>&1; then
+        OS_ID="macos"
+        OS_NAME="macOS $(sw_vers -productVersion)"
+    else
+        OS_ID="unknown"
+        OS_NAME="$(uname -s)"
+    fi
+
+    OS_MATCH="$OS_ID $OS_LIKE"
+    case "$OS_MATCH" in
+        *debian*|*ubuntu*|*raspbian*|*linuxmint*|*kali*|*pop*|*devuan*|*deepin*|*mx*|*parrot*|*elementary*|*zorin*|*neon*|*pureos*)
+            INSTALL_CMD="apt-get install -y ${MISSING}"
+            ;;
+        *fedora*|*rhel*|*centos*|*rocky*|*almalinux*|*ol*|*oracle*|*amzn*|*euleros*|*anolis*|*kylin*|*uos*|*openeuler*)
+            INSTALL_CMD="dnf install -y ${MISSING}"
+            ;;
+        *opensuse*|*suse*|*sle*|*sled*)
+            INSTALL_CMD="zypper install -y ${MISSING}"
+            ;;
+        *arch*|*manjaro*|*endeavouros*|*garuda*|*cachyos*|*artix*|*blackarch*)
+            INSTALL_CMD="pacman -Sy --noconfirm ${MISSING}"
+            ;;
+        *alpine*|*chimera*)
+            INSTALL_CMD="apk add --no-cache ${MISSING}"
+            ;;
+        *freebsd*)
+            INSTALL_CMD="pkg install -y ${MISSING}"
+            ;;
+        *macos*)
+            INSTALL_CMD="brew install ${MISSING}"
+            ;;
+        *gentoo*|*funtoo*)
+            INSTALL_CMD="emerge ${MISSING}"
+            ;;
+        *void*)
+            INSTALL_CMD="xbps-install -Sy ${MISSING}"
+            ;;
+        *solus*)
+            INSTALL_CMD="eopkg install -y ${MISSING}"
+            ;;
+        *openwrt*)
+            INSTALL_CMD="opkg update && opkg install ${MISSING}"
+            ;;
+        *nixos*)
+            NIX_MISSING=""
+            [ -z "$DOWNLOAD" ] && NIX_MISSING="curl"
+            [ "$HAVE_TAR" -eq 0 ] && NIX_MISSING="${NIX_MISSING:+$NIX_MISSING }gnutar"
+            INSTALL_CMD="nix-env -i ${NIX_MISSING}"
+            ;;
+        *)
+            INSTALL_CMD=""
+            ;;
+    esac
+
+    echo "${MSG_CURRENT_DISTRO}: ${OS_NAME}" >&2
+
     echo "${RED}${MSG_NEED_TOOLS}${NC}" >&2
 
-    MISSING=""
-    [ -z "$DOWNLOAD" ] && MISSING="$MISSING curl"
-    [ "$HAVE_TAR" -eq 0 ] && MISSING="$MISSING tar"
-    echo "  missing:${MISSING}" >&2
+    echo "  ${MSG_MISSING}:${MISSING}" >&2
     echo "" >&2
+    
+    if [ -n "$INSTALL_CMD" ]; then
+        echo "${YELLOW}${MSG_RUN_INSTALL}${NC}" >&2
+        echo "" >&2
+        echo "  ${INSTALL_CMD}" >&2
+        
+        echo "" >&2
+    else
+        echo "${MSG_UNKNOWN_OS}" >&2
+        echo "" >&2
+    fi
 
-    echo "${YELLOW}${MSG_MANUAL_INSTALL}${NC}" >&2
-    echo "" >&2
-    echo "  Debian/Ubuntu : apt-get install -y curl tar" >&2
-    echo "  Fedora/RHEL   : dnf install -y curl tar" >&2
-    echo "  CentOS        : yum install -y curl tar" >&2
-    echo "  Arch          : pacman -Sy --noconfirm curl tar" >&2
-    echo "  openSUSE      : zypper install -y curl tar" >&2
-    echo "  Alpine        : apk add --no-cache curl tar" >&2
-    echo "  FreeBSD       : pkg install -y curl tar" >&2
-    echo "  macOS         : brew install curl" >&2
+    echo "${MSG_AFTER_INSTALL}" >&2
     echo "" >&2
 
     exit 1
@@ -1040,35 +2641,6 @@ check_tools() {
 # Helper: detect musl
 is_musl() {
     [ -e /lib/ld-musl-*.so.1 ]
-}
-
-# Helper: check if glibc >= 2.32
-has_glibc_min_2_32() {
-    # If not Linux, assume true (macOS uses libSystem, FreeBSD uses its own libc)
-    if [ "$(uname -s)" != "Linux" ]; then
-        return 0
-    fi
-
-    # No ldd -> can't detect
-    if ! command -v ldd >/dev/null 2>&1; then
-        return 1
-    fi
-
-    GLIBC_VER=$(ldd --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+$')
-    if [ -z "$GLIBC_VER" ]; then
-        return 1
-    fi
-
-    MAJOR=${GLIBC_VER%%.*}
-    MINOR=${GLIBC_VER#*.}
-
-    if [ "$MAJOR" -gt 2 ]; then
-        return 0
-    fi
-    if [ "$MAJOR" -eq 2 ] && [ "$MINOR" -ge 32 ]; then
-        return 0
-    fi
-    return 1
 }
 
 # Online install: detect platform
@@ -1084,52 +2656,52 @@ detect_platform() {
 
     case "${OS}-${ARCH}" in
         Linux-x86_64)
-            if is_musl; then
-                PKG="safe-rm-v${VERSION}-linux-x86_64-musl.tar.gz"
-            elif has_glibc_min_2_32; then
-                PKG="safe-rm-v${VERSION}-linux-x86_64-gnu.tar.gz"
-            else
-                # Old glibc (e.g., CentOS 7, Fedora 32): use musl static build
-                PKG="safe-rm-v${VERSION}-linux-x86_64-musl.tar.gz"
-            fi
+            PKG_GNU="safe-rm-v${VERSION}-linux-x86_64-gnu.tar.gz"
+            PKG_MUSL="safe-rm-v${VERSION}-linux-x86_64-musl.tar.gz"
             ;;
         Linux-aarch64)
-            if is_musl; then
-                PKG="safe-rm-v${VERSION}-linux-aarch64-musl.tar.gz"
-            elif has_glibc_min_2_32; then
-                PKG="safe-rm-v${VERSION}-linux-aarch64-gnu.tar.gz"
-            else
-                # Old glibc: use musl static build
-                PKG="safe-rm-v${VERSION}-linux-aarch64-musl.tar.gz"
-            fi
+            PKG_GNU="safe-rm-v${VERSION}-linux-aarch64-gnu.tar.gz"
+            PKG_MUSL="safe-rm-v${VERSION}-linux-aarch64-musl.tar.gz"
             ;;
         Linux-loongarch64)
-            PKG="safe-rm-v${VERSION}-linux-loongarch64-gnu.tar.gz"
+            PKG_GNU="safe-rm-v${VERSION}-linux-loongarch64-gnu.tar.gz"
+            PKG_MUSL=""
             ;;
         FreeBSD-x86_64)
-            PKG="safe-rm-v${VERSION}-freebsd-x86_64.tar.gz"
+            PKG_GNU="safe-rm-v${VERSION}-freebsd-x86_64.tar.gz"
+            PKG_MUSL=""
             ;;
         Darwin-x86_64)
-            PKG="safe-rm-v${VERSION}-macos-x86_64.tar.gz"
+            PKG_GNU="safe-rm-v${VERSION}-macos-x86_64.tar.gz"
+            PKG_MUSL=""
             ;;
         Darwin-aarch64)
-            PKG="safe-rm-v${VERSION}-macos-aarch64.tar.gz"
+            PKG_GNU="safe-rm-v${VERSION}-macos-aarch64.tar.gz"
+            PKG_MUSL=""
             ;;
         *)
             error "$MSG_UNSUPPORTED ${OS} ${ARCH}"
             ;;
     esac
 
-    URL="${BASE_URL}/${PKG}"
-    DIR=$(basename "$PKG" .tar.gz)
+    if [ -n "$PKG_GNU" ]; then
+        URL_GNU="${BASE_URL}/${PKG_GNU}"
+        DIR_GNU=$(basename "$PKG_GNU" .tar.gz)
+    fi
+    if [ -n "$PKG_MUSL" ]; then
+        URL_MUSL="${BASE_URL}/${PKG_MUSL}"
+        DIR_MUSL=$(basename "$PKG_MUSL" .tar.gz)
+    fi
 
     info "OS:   ${OS}"
     info "ARCH: ${ARCH}"
-    info "PKG:  ${PKG}"
 }
 
-# Online install: download 
+# Online install: download
 download() {
+    URL="$1"
+    PKG="$2"
+
     TMPDIR=$(mktemp -d)
     cd "$TMPDIR"
 
@@ -1139,23 +2711,42 @@ download() {
     curl -fL --progress-bar -o "$PKG" "$URL" || {
         cd /
         rm -rf "$TMPDIR"
-        error "$MSG_DOWNLOAD_FAILED"
+        return 1
     }
+    return 0
 }
 
-# Online install: extract 
+# Online install: extract
 extract() {
+    PKG="$1"
+    DIR="$2"
+
     info "$MSG_EXTRACTING"
     tar xzf "$PKG" || {
         cd /
         rm -rf "$TMPDIR"
-        error "$MSG_EXTRACT_FAILED"
+        return 1
     }
     cd "$DIR"
+    return 0
 }
 
-# Local install from current directory 
+# Cleanup installed files (used for fallback)
+cleanup_installed() {
+    rm -f "$BINDIR/safe-rm"
+    rm -f "$BINDIR/update-safe-rm"
+    rm -f "$SYSCONFDIR/safe-rm.conf"
+    rm -f "$PROFILEDIR/safe-rm.sh"
+    rm -rf "$SYMLINKDIR"
+    rmdir "$PREFIX/share/safe-rm" 2>/dev/null || true
+    rm -f "$MANDIR/safe-rm.1"
+    rm -rf "$DOCDIR"
+}
+
+# Local install from current directory
 install_from_cwd() {
+    SELECTED_MSG="$1"
+
     check_files
     check_installed
 
@@ -1193,6 +2784,22 @@ install_from_cwd() {
             install -m 644 "$f" "$DOCDIR/"
         fi
     done
+
+    # 8. Verify binary can run
+    SAFE_RM_OUT=$("$BINDIR/safe-rm" --version 2>&1)
+    SAFE_RM_RC=$?
+    if [ "$SAFE_RM_RC" -ne 0 ]; then
+        return 1
+    fi
+    case "$SAFE_RM_OUT" in
+        *GLIBC_*|*"not found"*|*"version "*" not found"*)
+            return 1
+            ;;
+    esac
+
+    if [ -n "$SELECTED_MSG" ]; then
+        info "$SELECTED_MSG"
+    fi
 
     info "$MSG_DONE"
     echo ""
@@ -1253,14 +2860,33 @@ install_from_cwd() {
     fi
 }
 
-# Install 
+# Try online install for one package
+try_online_install() {
+    URL="$1"
+    PKG="$2"
+    DIR="$3"
+    SELECTED_MSG="$4"
+
+    download "$URL" "$PKG" || return 1
+    extract "$PKG" "$DIR" || return 1
+
+    if [ -f "safe-rm" ] && [ -f "safe-rm.conf" ] && [ -f "safe-rm.sh" ] \
+        && [ -f "update-safe-rm" ] && [ -f "safe-rm.1" ]; then
+        install_from_cwd "$SELECTED_MSG" || return 1
+        return 0
+    fi
+
+    return 1
+}
+
+# Install
 do_install() {
     check_root
 
     # Case 1: complete local files in current directory -> local install
     if [ -f "safe-rm" ] && [ -f "safe-rm.conf" ] && [ -f "safe-rm.sh" ] \
         && [ -f "update-safe-rm" ] && [ -f "safe-rm.1" ]; then
-        install_from_cwd
+        install_from_cwd ""
         return
     fi
 
@@ -1268,24 +2894,39 @@ do_install() {
     check_installed
     check_tools
     detect_platform
-    download
-    extract
 
-    # After extraction, reuse the local install logic
-    if [ -f "safe-rm" ] && [ -f "safe-rm.conf" ] && [ -f "safe-rm.sh" ] \
-        && [ -f "update-safe-rm" ] && [ -f "safe-rm.1" ]; then
-        install_from_cwd
-
+    # Try gnu first
+    if [ -n "$PKG_GNU" ]; then
+        info "$MSG_TRY_GNU"
+        if try_online_install "$URL_GNU" "$PKG_GNU" "$DIR_GNU" "$MSG_GNU_SELECTED"; then
+            cd /
+            rm -rf "$TMPDIR"
+            return 0
+        fi
+        # gnu failed: cleanup and try musl
+        cleanup_installed
         cd /
         rm -rf "$TMPDIR"
-    else
-        cd /
-        rm -rf "$TMPDIR"
-        error "$MSG_NO_FILE safe-rm"
+        warn "$MSG_FALLBACK_MUSL"
     fi
+
+    # Try musl
+    if [ -n "$PKG_MUSL" ]; then
+        info "$MSG_TRY_MUSL"
+        if try_online_install "$URL_MUSL" "$PKG_MUSL" "$DIR_MUSL" "$MSG_MUSL_SELECTED"; then
+            cd /
+            rm -rf "$TMPDIR"
+            return 0
+        fi
+        cleanup_installed
+        cd /
+        rm -rf "$TMPDIR"
+    fi
+    print_system_info
+    error "$MSG_BOTH_FAILED"
 }
 
-# Uninstall 
+# Uninstall
 do_uninstall() {
     check_root
 
@@ -1320,7 +2961,7 @@ do_uninstall() {
     info "$MSG_UNINSTALLED"
 }
 
-# Usage 
+# Usage
 usage() {
     cat << EOF
 safe-rm installer (integrated)
@@ -1352,7 +2993,7 @@ Homepage: $HOMEPAGE
 EOF
 }
 
-# Main 
+# Main
 case "${1:-}" in
     -h|--help)
         usage
